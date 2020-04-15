@@ -19,8 +19,8 @@ import CodeSample from './components/CodeSample';
 const filePrefixName = (name) => {
 	return name.toLowerCase().replace(/[\W_]+/g, '-')
 }
-	
-	class App extends Component {
+
+class App extends Component {
 	
 	constructor(props) {
 		super(props)
@@ -43,7 +43,7 @@ const filePrefixName = (name) => {
 	
 	handleChange = (input, event) => {
 		this.setState({[input]: event.target.value})
-		switch(input) {
+		switch (input) {
 			case 'customFilePrefix':
 				this.setState({customCodePrefix: filePrefixName()})
 				break;
@@ -53,6 +53,10 @@ const filePrefixName = (name) => {
 	handleBlur = (input) => {
 		// Trim whitespace on prop.
 		this.setState({[input]: this.state[input].trim()})
+	}
+	
+	handleHover = (input) => {
+		console.log(input)
 	}
 	
 	handleFilesChange = (event) => {
@@ -73,11 +77,14 @@ const filePrefixName = (name) => {
 		const codeStyles = {display: 'block', padding: '9px 10px', lineHeight: 1.5, color: '#999'}
 		return (
 			<Container>
+				
 				<Box fontFamily="fontFamily" fontSize={30} fontWeight={500} style={{margin: '30px 0'}}>
 					OMS Boilerplate Plugin Generator
 				</Box>
-				<Grid container spacing={3}>
-					<Grid item xs={6}>
+				
+				<Grid container spacing={8}>
+					<Grid item xs={4}>
+						
 						<TextField id="plugin-name"
 						           label="Plugin Name"
 						           required
@@ -85,13 +92,8 @@ const filePrefixName = (name) => {
 						           value={name}
 						           onChange={(e) => this.handleChange('name', e)}
 						           onBlur={(e) => this.handleBlur('name')}
+						           onMouseEnter={() => this.handleHover('name')}
 						/>
-					</Grid>
-					<Grid item xs={6}>
-						{!customCodePrefix &&
-							<span style={{fontSize: 15, marginTop: 22, display: 'block'}} onClick={() => this.setState({customCodePrefix: !this.state.customCodePrefix})}>Customize Code Prefix</span>
-						}
-						{customCodePrefix &&
 						<TextField id="code-prefix"
 						           label="Custom Code Prefix"
 						           style={{width: '100%'}}
@@ -99,37 +101,29 @@ const filePrefixName = (name) => {
 						           onChange={(e) => this.handleChange('codePrefix', e)}
 						           helperText={`Plugin directory name and file names will be prepended with this value.`}
 						/>
-						}
-					</Grid>
-				</Grid>
-				<Box style={{margin: '0 -8px'}}>
-					<TextField id="base-class-name"
-					           label="Base Class Name"
-					           required
-					           style={{margin: 8, width: 'calc(50% - 16px)'}}
-					           value={baseClassName}
-					           onChange={(e) => this.handleChange('baseClassName', e)}
-					/>
-					<TextField id="post-type-name"
-					           label="Post Type Name"
-					           required
-					           style={{margin: 8, width: 'calc(50% - 16px)'}}
-					           value={postTypeName}
-					           onChange={(e) => this.handleChange('postTypeName', e)}
-					/>
-					<TextField id="taxonomies"
-					           label="Taxonomies"
-					           required
-					           style={{margin: 8, width: 'calc(50% - 16px)'}}
-					           value={taxonomies}
-					           onChange={(e) => this.handleChange('taxonomies', e)}
-					/>
-				</Box>
-				<Grid container>
-					<Grid item xs={12}>
+						<TextField id="base-class-name"
+						           label="Base Class Name"
+						           required
+						           style={{width: '100%'}}
+						           value={baseClassName}
+						           onChange={(e) => this.handleChange('baseClassName', e)}
+						/>
+						<TextField id="post-type-name"
+						           label="Post Type Name"
+						           required
+						           style={{width: '100%'}}
+						           value={postTypeName}
+						           onChange={(e) => this.handleChange('postTypeName', e)}
+						/>
+						<TextField id="taxonomies"
+						           label="Taxonomies"
+						           required
+						           style={{width: '100%'}}
+						           value={taxonomies}
+						           onChange={(e) => this.handleChange('taxonomies', e)}
+						/>
+						
 						<h3>Include Files</h3>
-					</Grid>
-					<Grid item xs={6}>
 						<FormControl component="fieldset">
 							<FormLabel component="legend">Choose files for you project</FormLabel>
 							<FormGroup>
@@ -160,7 +154,16 @@ const filePrefixName = (name) => {
 							</FormGroup>
 							<FormHelperText>Select the files needed for your plugin.</FormHelperText>
 						</FormControl>
+						
 					</Grid>
+					
+					<Grid item xs={8}>
+						<CodeSample codePrefix={codePrefix} filePrefix={filePrefix}/>
+					</Grid>
+					
+				</Grid>
+				
+				<Grid container>
 					<Grid item xs={6} style={{marginTop: 20}}>
 						{name &&
 						<>
@@ -181,7 +184,6 @@ const filePrefixName = (name) => {
 					<Button variant="contained" color="primary">Generate Plugin</Button>
 				</Box>
 				<Box>
-					<CodeSample codePrefix={codePrefix} filePrefix={filePrefix}/>
 				</Box>
 			</Container>
 		)
