@@ -1,11 +1,5 @@
 import React from 'react';
 
-const codeStyles = {
-	backgroundColor: '#f9f9f9',
-	padding: 10,
-	margin: 0
-}
-
 const styles = {
 	h5: {
 		marginBottom: 10

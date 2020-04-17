@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import pluralize from 'pluralize';
 
 import {
 	Grid,
@@ -15,6 +16,7 @@ import {
 } from '@material-ui/core';
 
 import {PhpClass, FileName, FunctionName} from './components/CodeSamples';
+import PostTypeLabels from './components/PostTypeLabels';
 
 const getClassName = (name) => {
 	return name.replace(/[\W_]+/g, '_')
@@ -37,7 +39,8 @@ class App extends Component {
 			baseClassName: '',
 			filePrefix: '',
 			functionPrefix: '',
-			postTypeName: '',
+			postTypeNames: '',
+			postTypes: [],
 			taxonomies: '',
 			files: {
 				functions: true,
@@ -59,6 +62,22 @@ class App extends Component {
 		const functionPrefix = getFunctionPrefixName(name)
 		if (name.length) {
 			this.setState({name, baseClassName, filePrefix, functionPrefix})
+		}
+	}
+	
+	handlePostTypeBlur = (e) => {
+		const postTypeNames = e.target.value
+		if (postTypeNames.trim().length > 0) {
+			const postTypesArray = postTypeNames.split(',')
+			const postTypes = postTypesArray.map(type => {
+				return (
+					{
+						singular: pluralize(type.trim(), 1),
+						plural: pluralize(type.trim(), 2)
+					}
+				)
+			})
+			this.setState({postTypes})
 		}
 	}
 	
@@ -86,7 +105,7 @@ class App extends Component {
 	
 	render() {
 		// Get properties from state.
-		const {name, baseClassName, filePrefix, functionPrefix, postTypeName, taxonomies, files} = this.state
+		const {name, baseClassName, filePrefix, functionPrefix, postTypeNames, postTypes, taxonomies, files} = this.state
 		// Get properties from files variable.
 		const {functions, query, template} = files
 		// Example code styles.
@@ -99,7 +118,7 @@ class App extends Component {
 				</Box>
 				
 				<Grid container spacing={8}>
-					<Grid item xs={6}>
+					<Grid item xs={4}>
 						
 						<TextField id="plugin-name"
 						           label="Plugin Name"
@@ -138,13 +157,14 @@ class App extends Component {
 						           onChange={(e) => this.handleChange('functionPrefix', e)}
 						           helperText={`Global functional functions will be prefixed with this value to prevent code collisions.`}
 						/>
-						<TextField id="post-type-name"
-						           label="Post Type Name"
+						<TextField id="post-types-names"
+						           label="Post Types"
 						           required
 						           style={{width: '100%', marginBottom: 30}}
 						           variant="outlined"
-						           value={postTypeName}
-						           onChange={(e) => this.handleChange('postTypeName', e)}
+						           value={postTypeNames}
+						           onChange={(e) => this.handleChange('postTypeNames', e)}
+						           onBlur={this.handlePostTypeBlur}
 						/>
 						<TextField id="taxonomies"
 						           label="Taxonomies"
@@ -189,11 +209,19 @@ class App extends Component {
 					
 					</Grid>
 					
-					<Grid item xs={6}>
+					<Grid item xs={8}>
 						<div style={{position: 'sticky', 'top': 0}}>
 							{baseClassName && <PhpClass classBase={baseClassName}/>}
 							{filePrefix && <FileName filePrefix={filePrefix}/>}
 							{functionPrefix && <FunctionName functionPrefix={functionPrefix}/>}
+							{postTypes &&
+							postTypes.map((postType) => {
+								console.log(postType)
+								return (
+									<PostTypeLabels fileName={filePrefix} singular={postType.singular} plural={postType.plural}/>
+								)
+							})
+							}
 						</div>
 					</Grid>
 				
