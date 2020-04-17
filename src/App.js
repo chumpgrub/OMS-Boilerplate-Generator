@@ -14,10 +14,18 @@ import {
 	Button
 } from '@material-ui/core';
 
-import CodeSample from './components/CodeSample';
+import {PhpClass, FileName, FunctionName} from './components/CodeSamples';
 
-const filePrefixName = (name) => {
+const getClassName = (name) => {
+	return name.replace(/[\W_]+/g, '_')
+}
+
+const getFilePrefixName = (name) => {
 	return name.toLowerCase().replace(/[\W_]+/g, '-')
+}
+
+const getFunctionPrefixName = (name) => {
+	return name.toLowerCase().replace(/[\W_]+/g, '_')
 }
 
 class App extends Component {
@@ -26,28 +34,36 @@ class App extends Component {
 		super(props)
 		this.state = {
 			name: '',
-			filePrefix: '',
-			customFilePrefix: false,
-			codePrefix: '',
-			customCodePrefix: false,
 			baseClassName: '',
+			filePrefix: '',
+			functionPrefix: '',
 			postTypeName: '',
 			taxonomies: '',
 			files: {
 				functions: true,
 				query: false,
 				template: true
-			}
+			},
+			errors: {}
+		}
+	}
+	
+	handlePluginNameChange = (e) => {
+		this.setState({name: e.target.value})
+	}
+	
+	handlePluginNameBlur = (e) => {
+		const name = e.target.value.trim()
+		const baseClassName = getClassName(name)
+		const filePrefix = getFilePrefixName(name)
+		const functionPrefix = getFunctionPrefixName(name)
+		if (name.length) {
+			this.setState({name, baseClassName, filePrefix, functionPrefix})
 		}
 	}
 	
 	handleChange = (input, event) => {
 		this.setState({[input]: event.target.value})
-		switch (input) {
-			case 'customFilePrefix':
-				this.setState({customCodePrefix: filePrefixName()})
-				break;
-		}
 	}
 	
 	handleBlur = (input) => {
@@ -69,11 +85,11 @@ class App extends Component {
 	}
 	
 	render() {
-		const {name, filePrefix, customFilePrefix, codePrefix, customCodePrefix, baseClassName, postTypeName, taxonomies, files} = this.state
+		// Get properties from state.
+		const {name, baseClassName, filePrefix, functionPrefix, postTypeName, taxonomies, files} = this.state
+		// Get properties from files variable.
 		const {functions, query, template} = files
-		// const filePrefix = name.toLowerCase().replace(/[\W_]+/g, '-')
-		// const codePrefix = name.toLowerCase().replace(/[\W_]+/g, '_')
-		// console.log(filePrefix, codePrefix)
+		// Example code styles.
 		const codeStyles = {display: 'block', padding: '9px 10px', lineHeight: 1.5, color: '#999'}
 		return (
 			<Container>
@@ -83,42 +99,58 @@ class App extends Component {
 				</Box>
 				
 				<Grid container spacing={8}>
-					<Grid item xs={4}>
+					<Grid item xs={6}>
 						
 						<TextField id="plugin-name"
 						           label="Plugin Name"
 						           required
-						           style={{width: '100%'}}
+						           style={{width: '100%', marginBottom: 30}}
 						           value={name}
-						           onChange={(e) => this.handleChange('name', e)}
-						           onBlur={(e) => this.handleBlur('name')}
+						           variant="outlined"
+						           onChange={this.handlePluginNameChange}
+						           onBlur={this.handlePluginNameBlur}
 						           onMouseEnter={() => this.handleHover('name')}
-						/>
-						<TextField id="code-prefix"
-						           label="Custom Code Prefix"
-						           style={{width: '100%'}}
-						           value={codePrefix}
-						           onChange={(e) => this.handleChange('codePrefix', e)}
-						           helperText={`Plugin directory name and file names will be prepended with this value.`}
 						/>
 						<TextField id="base-class-name"
 						           label="Base Class Name"
-						           required
-						           style={{width: '100%'}}
+						           disabled={baseClassName ? false : true}
+						           variant="outlined"
+						           style={{width: '100%', marginBottom: 30}}
 						           value={baseClassName}
 						           onChange={(e) => this.handleChange('baseClassName', e)}
+						           helperText={`Classes within plugin will be prepended with this value.`}
+						/>
+						<TextField id="file-prefix"
+						           label="File Prefix"
+						           disabled={filePrefix ? false : true}
+						           variant="outlined"
+						           style={{width: '100%', marginBottom: 30}}
+						           value={filePrefix}
+						           onChange={(e) => this.handleChange('filePrefix', e)}
+						           helperText={`Plugin directory name and file names will be prepended with this value.`}
+						/>
+						<TextField id="function-prefix"
+						           label="Function Prefix"
+						           style={{width: '100%', marginBottom: 30}}
+						           variant="outlined"
+						           value={functionPrefix}
+						           disabled={functionPrefix ? false : true}
+						           onChange={(e) => this.handleChange('functionPrefix', e)}
+						           helperText={`Global functional functions will be prefixed with this value to prevent code collisions.`}
 						/>
 						<TextField id="post-type-name"
 						           label="Post Type Name"
 						           required
-						           style={{width: '100%'}}
+						           style={{width: '100%', marginBottom: 30}}
+						           variant="outlined"
 						           value={postTypeName}
 						           onChange={(e) => this.handleChange('postTypeName', e)}
 						/>
 						<TextField id="taxonomies"
 						           label="Taxonomies"
 						           required
-						           style={{width: '100%'}}
+						           variant="outlined"
+						           style={{width: '100%', marginBottom: 30}}
 						           value={taxonomies}
 						           onChange={(e) => this.handleChange('taxonomies', e)}
 						/>
@@ -154,13 +186,17 @@ class App extends Component {
 							</FormGroup>
 							<FormHelperText>Select the files needed for your plugin.</FormHelperText>
 						</FormControl>
-						
+					
 					</Grid>
 					
-					<Grid item xs={8}>
-						<CodeSample codePrefix={codePrefix} filePrefix={filePrefix}/>
+					<Grid item xs={6}>
+						<div style={{position: 'sticky', 'top': 0}}>
+							{baseClassName && <PhpClass classBase={baseClassName}/>}
+							{filePrefix && <FileName filePrefix={filePrefix}/>}
+							{functionPrefix && <FunctionName functionPrefix={functionPrefix}/>}
+						</div>
 					</Grid>
-					
+				
 				</Grid>
 				
 				<Grid container>

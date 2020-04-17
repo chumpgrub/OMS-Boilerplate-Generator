@@ -19,7 +19,7 @@ const styles = {
 
 const PhpClass = ({classBase}) => (
 	<div>
-		<h5 style={styles.h5}>PHP Class</h5>
+		<h5 style={styles.h5}>Base Class Name</h5>
 		<code>
 			<pre style={styles.code}>
 				&lt;?php<br/><br/>
@@ -32,7 +32,7 @@ const PhpClass = ({classBase}) => (
 
 const FileName = ({filePrefix}) => (
 	<div>
-		<h5 style={styles.h5}>Filename Prefix</h5>
+		<h5 style={styles.h5}>File Name Prefix</h5>
 		<code>
 			<pre style={styles.code}>
 				plugins/<var style={{fontWeight: 'bold'}}>{filePrefix}</var>/includes/<var
@@ -44,7 +44,7 @@ const FileName = ({filePrefix}) => (
 
 const FunctionName = ({functionPrefix}) => (
 	<div>
-		<h5 style={styles.h5}>Function Prefix</h5>
+		<h5 style={styles.h5}>Function Name Prefix</h5>
 		<code>
 				<pre style={styles.code}>
 					function <var
