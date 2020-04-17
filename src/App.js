@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import pluralize from 'pluralize';
 
 import {
 	Grid,
@@ -14,45 +15,83 @@ import {
 	Button
 } from '@material-ui/core';
 
-import CodeSample from './components/CodeSample';
+import {PhpClass, FileName, FunctionName} from './components/CodeSamples';
+import PostTypeLabels from './components/PostTypeLabels';
 
-const filePrefixName = (name) => {
+const getClassName = (name) => {
+	return name.replace(/[\W_]+/g, '_')
+}
+
+const getFilePrefixName = (name) => {
 	return name.toLowerCase().replace(/[\W_]+/g, '-')
 }
-	
-	class App extends Component {
+
+const getFunctionPrefixName = (name) => {
+	return name.toLowerCase().replace(/[\W_]+/g, '_')
+}
+
+class App extends Component {
 	
 	constructor(props) {
 		super(props)
 		this.state = {
 			name: '',
-			filePrefix: '',
-			customFilePrefix: false,
-			codePrefix: '',
-			customCodePrefix: false,
 			baseClassName: '',
-			postTypeName: '',
+			filePrefix: '',
+			functionPrefix: '',
+			postTypeNames: '',
+			postTypes: [],
 			taxonomies: '',
 			files: {
 				functions: true,
 				query: false,
 				template: true
-			}
+			},
+			errors: {}
+		}
+	}
+	
+	handlePluginNameChange = (e) => {
+		this.setState({name: e.target.value})
+	}
+	
+	handlePluginNameBlur = (e) => {
+		const name = e.target.value.trim()
+		const baseClassName = getClassName(name)
+		const filePrefix = getFilePrefixName(name)
+		const functionPrefix = getFunctionPrefixName(name)
+		if (name.length) {
+			this.setState({name, baseClassName, filePrefix, functionPrefix})
+		}
+	}
+	
+	handlePostTypeBlur = (e) => {
+		const postTypeNames = e.target.value
+		if (postTypeNames.trim().length > 0) {
+			const postTypesArray = postTypeNames.split(',')
+			const postTypes = postTypesArray.map(type => {
+				return (
+					{
+						singular: pluralize(type.trim(), 1),
+						plural: pluralize(type.trim(), 2)
+					}
+				)
+			})
+			this.setState({postTypes})
 		}
 	}
 	
 	handleChange = (input, event) => {
 		this.setState({[input]: event.target.value})
-		switch(input) {
-			case 'customFilePrefix':
-				this.setState({customCodePrefix: filePrefixName()})
-				break;
-		}
 	}
 	
 	handleBlur = (input) => {
 		// Trim whitespace on prop.
 		this.setState({[input]: this.state[input].trim()})
+	}
+	
+	handleHover = (input) => {
+		console.log(input)
 	}
 	
 	handleFilesChange = (event) => {
@@ -65,71 +104,78 @@ const filePrefixName = (name) => {
 	}
 	
 	render() {
-		const {name, filePrefix, customFilePrefix, codePrefix, customCodePrefix, baseClassName, postTypeName, taxonomies, files} = this.state
+		// Get properties from state.
+		const {name, baseClassName, filePrefix, functionPrefix, postTypeNames, postTypes, taxonomies, files} = this.state
+		// Get properties from files variable.
 		const {functions, query, template} = files
-		// const filePrefix = name.toLowerCase().replace(/[\W_]+/g, '-')
-		// const codePrefix = name.toLowerCase().replace(/[\W_]+/g, '_')
-		// console.log(filePrefix, codePrefix)
+		// Example code styles.
 		const codeStyles = {display: 'block', padding: '9px 10px', lineHeight: 1.5, color: '#999'}
 		return (
 			<Container>
+				
 				<Box fontFamily="fontFamily" fontSize={30} fontWeight={500} style={{margin: '30px 0'}}>
 					OMS Boilerplate Plugin Generator
 				</Box>
-				<Grid container spacing={3}>
-					<Grid item xs={6}>
+				
+				<Grid container spacing={8}>
+					<Grid item xs={4}>
+						
 						<TextField id="plugin-name"
 						           label="Plugin Name"
 						           required
-						           style={{width: '100%'}}
+						           style={{width: '100%', marginBottom: 30}}
 						           value={name}
-						           onChange={(e) => this.handleChange('name', e)}
-						           onBlur={(e) => this.handleBlur('name')}
+						           variant="outlined"
+						           onChange={this.handlePluginNameChange}
+						           onBlur={this.handlePluginNameBlur}
+						           onMouseEnter={() => this.handleHover('name')}
 						/>
-					</Grid>
-					<Grid item xs={6}>
-						{!customCodePrefix &&
-							<span style={{fontSize: 15, marginTop: 22, display: 'block'}} onClick={() => this.setState({customCodePrefix: !this.state.customCodePrefix})}>Customize Code Prefix</span>
-						}
-						{customCodePrefix &&
-						<TextField id="code-prefix"
-						           label="Custom Code Prefix"
-						           style={{width: '100%'}}
-						           value={codePrefix}
-						           onChange={(e) => this.handleChange('codePrefix', e)}
+						<TextField id="base-class-name"
+						           label="Base Class Name"
+						           disabled={baseClassName ? false : true}
+						           variant="outlined"
+						           style={{width: '100%', marginBottom: 30}}
+						           value={baseClassName}
+						           onChange={(e) => this.handleChange('baseClassName', e)}
+						           helperText={`Classes within plugin will be prepended with this value.`}
+						/>
+						<TextField id="file-prefix"
+						           label="File Prefix"
+						           disabled={filePrefix ? false : true}
+						           variant="outlined"
+						           style={{width: '100%', marginBottom: 30}}
+						           value={filePrefix}
+						           onChange={(e) => this.handleChange('filePrefix', e)}
 						           helperText={`Plugin directory name and file names will be prepended with this value.`}
 						/>
-						}
-					</Grid>
-				</Grid>
-				<Box style={{margin: '0 -8px'}}>
-					<TextField id="base-class-name"
-					           label="Base Class Name"
-					           required
-					           style={{margin: 8, width: 'calc(50% - 16px)'}}
-					           value={baseClassName}
-					           onChange={(e) => this.handleChange('baseClassName', e)}
-					/>
-					<TextField id="post-type-name"
-					           label="Post Type Name"
-					           required
-					           style={{margin: 8, width: 'calc(50% - 16px)'}}
-					           value={postTypeName}
-					           onChange={(e) => this.handleChange('postTypeName', e)}
-					/>
-					<TextField id="taxonomies"
-					           label="Taxonomies"
-					           required
-					           style={{margin: 8, width: 'calc(50% - 16px)'}}
-					           value={taxonomies}
-					           onChange={(e) => this.handleChange('taxonomies', e)}
-					/>
-				</Box>
-				<Grid container>
-					<Grid item xs={12}>
+						<TextField id="function-prefix"
+						           label="Function Prefix"
+						           style={{width: '100%', marginBottom: 30}}
+						           variant="outlined"
+						           value={functionPrefix}
+						           disabled={functionPrefix ? false : true}
+						           onChange={(e) => this.handleChange('functionPrefix', e)}
+						           helperText={`Global functional functions will be prefixed with this value to prevent code collisions.`}
+						/>
+						<TextField id="post-types-names"
+						           label="Post Types"
+						           required
+						           style={{width: '100%', marginBottom: 30}}
+						           variant="outlined"
+						           value={postTypeNames}
+						           onChange={(e) => this.handleChange('postTypeNames', e)}
+						           onBlur={this.handlePostTypeBlur}
+						/>
+						<TextField id="taxonomies"
+						           label="Taxonomies"
+						           required
+						           variant="outlined"
+						           style={{width: '100%', marginBottom: 30}}
+						           value={taxonomies}
+						           onChange={(e) => this.handleChange('taxonomies', e)}
+						/>
+						
 						<h3>Include Files</h3>
-					</Grid>
-					<Grid item xs={6}>
 						<FormControl component="fieldset">
 							<FormLabel component="legend">Choose files for you project</FormLabel>
 							<FormGroup>
@@ -160,7 +206,28 @@ const filePrefixName = (name) => {
 							</FormGroup>
 							<FormHelperText>Select the files needed for your plugin.</FormHelperText>
 						</FormControl>
+					
 					</Grid>
+					
+					<Grid item xs={8}>
+						<div style={{position: 'sticky', 'top': 0}}>
+							{baseClassName && <PhpClass classBase={baseClassName}/>}
+							{filePrefix && <FileName filePrefix={filePrefix}/>}
+							{functionPrefix && <FunctionName functionPrefix={functionPrefix}/>}
+							{postTypes &&
+							postTypes.map((postType) => {
+								console.log(postType)
+								return (
+									<PostTypeLabels fileName={filePrefix} singular={postType.singular} plural={postType.plural}/>
+								)
+							})
+							}
+						</div>
+					</Grid>
+				
+				</Grid>
+				
+				<Grid container>
 					<Grid item xs={6} style={{marginTop: 20}}>
 						{name &&
 						<>
@@ -181,7 +248,6 @@ const filePrefixName = (name) => {
 					<Button variant="contained" color="primary">Generate Plugin</Button>
 				</Box>
 				<Box>
-					<CodeSample codePrefix={codePrefix} filePrefix={filePrefix}/>
 				</Box>
 			</Container>
 		)
