@@ -1,6 +1,5 @@
 import React, {Component} from 'react';
 import pluralize from 'pluralize';
-
 import {
 	Grid,
 	Container,
@@ -16,7 +15,7 @@ import {
 } from '@material-ui/core';
 
 import {PhpClass, FileName, FunctionName} from './components/CodeSamples';
-import PostTypeLabels from './components/PostTypeLabels';
+import {PostTypeLabels, TaxonomyLabels} from './components/PostTypeLabels';
 
 const getClassName = (name) => {
 	return name.replace(/[\W_]+/g, '_')
@@ -40,8 +39,9 @@ class App extends Component {
 			filePrefix: '',
 			functionPrefix: '',
 			postTypeNames: '',
-			postTypes: [],
-			taxonomies: '',
+			postTypes: null,
+			taxonomyNames: '',
+			taxonomies: null,
 			files: {
 				functions: true,
 				query: false,
@@ -81,6 +81,22 @@ class App extends Component {
 		}
 	}
 	
+	handleTaxonomiesBlur = (e) => {
+		const taxonomiesNames = e.target.value
+		if (taxonomiesNames.trim().length > 0) {
+			const taxonomiesArray = taxonomiesNames.split(',')
+			const taxonomies = taxonomiesArray.map(type => {
+				return (
+					{
+						singular: pluralize(type.trim(), 1),
+						plural: pluralize(type.trim(), 2)
+					}
+				)
+			})
+			this.setState({taxonomies})
+		}
+	}
+	
 	handleChange = (input, event) => {
 		this.setState({[input]: event.target.value})
 	}
@@ -105,11 +121,22 @@ class App extends Component {
 	
 	render() {
 		// Get properties from state.
-		const {name, baseClassName, filePrefix, functionPrefix, postTypeNames, postTypes, taxonomies, files} = this.state
+		const {name, baseClassName, filePrefix, functionPrefix, postTypeNames, postTypes, taxonomyNames, taxonomies, files} = this.state
 		// Get properties from files variable.
 		const {functions, query, template} = files
 		// Example code styles.
-		const codeStyles = {display: 'block', padding: '9px 10px', lineHeight: 1.5, color: '#999'}
+		const styles = {
+			h3: {
+				marginTop: 60
+			},
+			code: {
+				display: 'block',
+				padding: '9px 10px',
+				lineHeight: 1.5,
+				color: '#999'
+			}
+		}
+		const codeStyles = {}
 		return (
 			<Container>
 				
@@ -137,6 +164,7 @@ class App extends Component {
 						           style={{width: '100%', marginBottom: 30}}
 						           value={baseClassName}
 						           onChange={(e) => this.handleChange('baseClassName', e)}
+						           onBlur={(e) => this.handleBlur('baseClassName', e)}
 						           helperText={`Classes within plugin will be prepended with this value.`}
 						/>
 						<TextField id="file-prefix"
@@ -146,6 +174,7 @@ class App extends Component {
 						           style={{width: '100%', marginBottom: 30}}
 						           value={filePrefix}
 						           onChange={(e) => this.handleChange('filePrefix', e)}
+						           onBlur={(e) => this.handleBlur('filePrefix', e)}
 						           helperText={`Plugin directory name and file names will be prepended with this value.`}
 						/>
 						<TextField id="function-prefix"
@@ -155,6 +184,7 @@ class App extends Component {
 						           value={functionPrefix}
 						           disabled={functionPrefix ? false : true}
 						           onChange={(e) => this.handleChange('functionPrefix', e)}
+						           onBlur={(e) => this.handleBlur('functionPrefix', e)}
 						           helperText={`Global functional functions will be prefixed with this value to prevent code collisions.`}
 						/>
 						<TextField id="post-types-names"
@@ -171,8 +201,9 @@ class App extends Component {
 						           required
 						           variant="outlined"
 						           style={{width: '100%', marginBottom: 30}}
-						           value={taxonomies}
-						           onChange={(e) => this.handleChange('taxonomies', e)}
+						           value={taxonomyNames}
+						           onChange={(e) => this.handleChange('taxonomyNames', e)}
+						           onBlur={this.handleTaxonomiesBlur}
 						/>
 						
 						<h3>Include Files</h3>
@@ -211,16 +242,27 @@ class App extends Component {
 					
 					<Grid item xs={8}>
 						<div style={{position: 'sticky', 'top': 0}}>
+							{ (baseClassName || filePrefix || functionPrefix) ? <h3 style={{marginTop: 0}}>Plugin Class/File/Function Names</h3> : null}
 							{baseClassName && <PhpClass classBase={baseClassName}/>}
 							{filePrefix && <FileName filePrefix={filePrefix}/>}
 							{functionPrefix && <FunctionName functionPrefix={functionPrefix}/>}
-							{postTypes &&
-							postTypes.map((postType) => {
-								console.log(postType)
-								return (
-									<PostTypeLabels fileName={filePrefix} singular={postType.singular} plural={postType.plural}/>
-								)
-							})
+							{postTypes && <h3 style={styles.h3}>Post Types</h3>}
+							{
+								postTypes &&
+								postTypes.map((postType) => {
+									return (
+										<PostTypeLabels fileName={filePrefix} singular={postType.singular} plural={postType.plural}/>
+									)
+								})
+							}
+							{taxonomies && <h3 style={styles.h3}>Taxonomies</h3>}
+							{
+								taxonomies &&
+								taxonomies.map((taxonomy) => {
+									return (
+										<TaxonomyLabels fileName={filePrefix} singular={taxonomy.singular} plural={taxonomy.plural}/>
+									)
+								})
 							}
 						</div>
 					</Grid>
@@ -232,13 +274,13 @@ class App extends Component {
 						{name &&
 						<>
 							<div className="code" style={{height: 40}}>
-								{functions && <code style={codeStyles}>{`${filePrefix}-functions.php`}</code>}
+								{functions && <code style={styles.code}>{`${filePrefix}-functions.php`}</code>}
 							</div>
 							<div className="code" style={{height: 40}}>
 								{query && <code style={codeStyles}>{`class-${filePrefix}-query.php`}</code>}
 							</div>
 							<div className="code" style={{height: 40}}>
-								{template && <code style={codeStyles}>{`class-${filePrefix}-template-loader.php`}</code>}
+								{template && <code style={styles.code}>{`class-${filePrefix}-template-loader.php`}</code>}
 							</div>
 						</>
 						}
