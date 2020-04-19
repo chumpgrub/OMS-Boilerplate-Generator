@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {Component, Fragment} from 'react';
 import pluralize from 'pluralize';
 import {
 	Grid,
@@ -11,7 +11,8 @@ import {
 	FormHelperText,
 	FormControlLabel,
 	Checkbox,
-	Button
+	Button,
+	Typography
 } from '@material-ui/core';
 
 import {PhpClass, FileName, FunctionName} from './components/CodeSamples';
@@ -44,7 +45,7 @@ class App extends Component {
 			taxonomies: null,
 			files: {
 				functions: true,
-				query: false,
+				query: true,
 				template: true
 			},
 			errors: {}
@@ -106,10 +107,6 @@ class App extends Component {
 		this.setState({[input]: this.state[input].trim()})
 	}
 	
-	handleHover = (input) => {
-		console.log(input)
-	}
-	
 	handleFilesChange = (event) => {
 		// Get files prop.
 		const {files} = this.state
@@ -127,26 +124,51 @@ class App extends Component {
 		// Example code styles.
 		const styles = {
 			h3: {
-				marginTop: 60
+				marginTop: 0,
+				marginBottom: 0,
+				// textTransform: 'uppercase',
+				letterSpacing: 1,
+				fontWeight: 600,
+			},
+			h5: {
+				position: 'relative',
+				top: 9,
+				left: 20,
+				margin: 0,
+				display: 'inline-block',
+				padding: '2px 5px',
+				backgroundColor: '#fff',
+				color: 'rgba(0, 0, 0, 0.54)',
+				fontWeight: 400,
+				fontSize: 12,
+				borderRadius: 3,
 			},
 			code: {
-				display: 'block',
-				padding: '9px 10px',
-				lineHeight: 1.5,
-				color: '#999'
+				borderRadius: 4,
+				border: '1px solid #ddd',
+				backgroundColor: '#f9f9f9',
+				padding: '30px 20px 20px 20px',
+				margin: 0
+			},
+			grouping: {
+				marginTop: 0,
+				marginBottom: 0,
+			},
+			hr: {
+				border: 'none',
+				borderTop: '1px solid #ccc'
 			}
 		}
-		const codeStyles = {}
 		return (
 			<Container>
 				
-				<Box fontFamily="fontFamily" fontSize={30} fontWeight={500} style={{margin: '30px 0'}}>
+				<Typography variant="h2"
+				            style={{margin: '30px 0'}}>
 					OMS Boilerplate Plugin Generator
-				</Box>
+				</Typography>
 				
-				<Grid container spacing={8}>
-					<Grid item xs={4}>
-						
+				<Grid container spacing={4} style={styles.grouping}>
+					<Grid item xs={5}>
 						<TextField id="plugin-name"
 						           label="Plugin Name"
 						           required
@@ -155,8 +177,19 @@ class App extends Component {
 						           variant="outlined"
 						           onChange={this.handlePluginNameChange}
 						           onBlur={this.handlePluginNameBlur}
-						           onMouseEnter={() => this.handleHover('name')}
 						/>
+					</Grid>
+				</Grid>
+				
+				<Box>
+					<hr style={styles.hr}/>
+				</Box>
+				
+				<Grid container spacing={4} style={styles.grouping}>
+					<Grid item xs={12}>
+						<Typography variant="h5">Class/File/Function Names</Typography>
+					</Grid>
+					<Grid item xs={5}>
 						<TextField id="base-class-name"
 						           label="Base Class Name"
 						           disabled={baseClassName ? false : true}
@@ -187,26 +220,85 @@ class App extends Component {
 						           onBlur={(e) => this.handleBlur('functionPrefix', e)}
 						           helperText={`Global functional functions will be prefixed with this value to prevent code collisions.`}
 						/>
+					</Grid>
+					<Grid item xs={7}>
+						{baseClassName && <PhpClass classBase={baseClassName}/>}
+						{filePrefix && <FileName filePrefix={filePrefix}/>}
+						{functionPrefix && <FunctionName functionPrefix={functionPrefix}/>}
+					</Grid>
+				</Grid>
+				
+				<Box>
+					<hr style={styles.hr}/>
+				</Box>
+				
+				<Grid container spacing={4} style={styles.grouping}>
+					<Grid item xs={12}>
+						<Typography variant="h5">Post Types</Typography>
+					</Grid>
+					<Grid item xs={5}>
 						<TextField id="post-types-names"
 						           label="Post Types"
-						           required
 						           style={{width: '100%', marginBottom: 30}}
 						           variant="outlined"
 						           value={postTypeNames}
 						           onChange={(e) => this.handleChange('postTypeNames', e)}
 						           onBlur={this.handlePostTypeBlur}
 						/>
+					</Grid>
+					<Grid item xs={7}>
+						{
+							postTypes &&
+							postTypes.map((postType, index) => {
+								return (
+									<PostTypeLabels key={index.toString()} index={index} fileName={filePrefix}
+									                singular={postType.singular} plural={postType.plural}/>
+								)
+							})
+						}
+					</Grid>
+				</Grid>
+				
+				<Box>
+					<hr style={styles.hr}/>
+				</Box>
+				
+				<Grid container spacing={4} style={styles.grouping}>
+					<Grid item xs={12}>
+						<Typography variant="h5">Taxonomies</Typography>
+					</Grid>
+					<Grid item xs={5}>
 						<TextField id="taxonomies"
 						           label="Taxonomies"
-						           required
 						           variant="outlined"
 						           style={{width: '100%', marginBottom: 30}}
 						           value={taxonomyNames}
 						           onChange={(e) => this.handleChange('taxonomyNames', e)}
 						           onBlur={this.handleTaxonomiesBlur}
 						/>
-						
-						<h3>Include Files</h3>
+					</Grid>
+					<Grid item xs={7}>
+						{
+							taxonomies &&
+							taxonomies.map((taxonomy, index) => {
+								return (
+									<TaxonomyLabels key={index.toString()} index={index} fileName={filePrefix}
+									                singular={taxonomy.singular} plural={taxonomy.plural}/>
+								)
+							})
+						}
+					</Grid>
+				</Grid>
+				
+				<Box>
+					<hr style={styles.hr}/>
+				</Box>
+				
+				<Grid container spacing={4} style={styles.grouping}>
+					<Grid item xs={12}>
+						<Typography variant="h5">Include Files</Typography>
+					</Grid>
+					<Grid item xs={5}>
 						<FormControl component="fieldset">
 							<FormLabel component="legend">Choose files for you project</FormLabel>
 							<FormGroup>
@@ -239,58 +331,53 @@ class App extends Component {
 						</FormControl>
 					
 					</Grid>
-					
-					<Grid item xs={8}>
-						<div style={{position: 'sticky', 'top': 0}}>
-							{ (baseClassName || filePrefix || functionPrefix) ? <h3 style={{marginTop: 0}}>Plugin Class/File/Function Names</h3> : null}
-							{baseClassName && <PhpClass classBase={baseClassName}/>}
-							{filePrefix && <FileName filePrefix={filePrefix}/>}
-							{functionPrefix && <FunctionName functionPrefix={functionPrefix}/>}
-							{postTypes && <h3 style={styles.h3}>Post Types</h3>}
-							{
-								postTypes &&
-								postTypes.map((postType) => {
-									return (
-										<PostTypeLabels fileName={filePrefix} singular={postType.singular} plural={postType.plural}/>
-									)
-								})
-							}
-							{taxonomies && <h3 style={styles.h3}>Taxonomies</h3>}
-							{
-								taxonomies &&
-								taxonomies.map((taxonomy) => {
-									return (
-										<TaxonomyLabels fileName={filePrefix} singular={taxonomy.singular} plural={taxonomy.plural}/>
-									)
-								})
-							}
-						</div>
-					</Grid>
-				
-				</Grid>
-				
-				<Grid container>
-					<Grid item xs={6} style={{marginTop: 20}}>
+					<Grid item xs={7}>
 						{name &&
-						<>
-							<div className="code" style={{height: 40}}>
-								{functions && <code style={styles.code}>{`${filePrefix}-functions.php`}</code>}
-							</div>
-							<div className="code" style={{height: 40}}>
-								{query && <code style={codeStyles}>{`class-${filePrefix}-query.php`}</code>}
-							</div>
-							<div className="code" style={{height: 40}}>
-								{template && <code style={styles.code}>{`class-${filePrefix}-template-loader.php`}</code>}
-							</div>
-						</>
+						<Fragment>
+							{functions && (
+								<div>
+									<h5 style={styles.h5}>Functions File</h5>
+									<code>
+										<pre style={styles.code}><var style={{fontWeight: 'bold'}}>{filePrefix}</var>-functions.php</pre>
+									</code>
+								</div>
+							)}
+							{query && (
+								<div style={{marginTop: functions ? 10 : 0}}>
+									<h5 style={styles.h5}>Custom Query File</h5>
+									<code>
+										<pre style={styles.code}>{`class-`}<var
+											style={{fontWeight: 'bold'}}>{filePrefix}</var>-query.php</pre>
+									</code>
+								</div>
+							)}
+							{template && (
+								<div style={{marginTop: (functions || query) ? 10 : 0}}>
+									<h5 style={styles.h5}>Template Loader File</h5>
+									<code>
+										<pre style={styles.code}>{`class-`}<var style={{fontWeight: 'bold'}}>{filePrefix}</var>-template-loader.php</pre>
+									</code>
+								</div>
+							)
+							}
+						</Fragment>
 						}
 					</Grid>
 				</Grid>
-				<Box style={{marginTop: 30}}>
-					<Button variant="contained" color="primary">Generate Plugin</Button>
-				</Box>
+				
 				<Box>
+					<hr style={styles.hr}/>
 				</Box>
+				
+				<Grid container spacing={4}>
+					<Grid item xs={12} style={{margin: '30px 0 100px'}}>
+						<Button variant="contained"
+						        color="primary"
+						        size="large"
+						>Generate Plugin</Button>
+					</Grid>
+				</Grid>
+				
 			</Container>
 		)
 	}

@@ -2,17 +2,29 @@ import React from 'react';
 
 const styles = {
 	h5: {
-		marginBottom: 10
+		position: 'relative',
+		top: 9,
+		left: 20,
+		margin: 0,
+		display: 'inline-block',
+		padding: '2px 5px',
+		backgroundColor: '#fff',
+		color: 'rgba(0, 0, 0, 0.54)',
+		fontWeight: 400,
+		fontSize: 12,
+		borderRadius: 3,
 	},
 	code: {
+		borderRadius: 4,
+		border: '1px solid #ddd',
 		backgroundColor: '#f9f9f9',
-		padding: 10,
+		padding: '30px 20px 20px 20px',
 		margin: 0
 	}
 }
 
 const PhpClass = ({classBase}) => (
-	<div>
+	<div style={{marginTop: '-19px'}}>
 		<h5 style={styles.h5}>Base Class Name</h5>
 		<code>
 			<pre style={styles.code}>
@@ -25,7 +37,7 @@ const PhpClass = ({classBase}) => (
 )
 
 const FileName = ({filePrefix}) => (
-	<div>
+	<div style={{marginTop: 10}}>
 		<h5 style={styles.h5}>File Name Prefix</h5>
 		<code>
 			<pre style={styles.code}>
@@ -37,7 +49,7 @@ const FileName = ({filePrefix}) => (
 )
 
 const FunctionName = ({functionPrefix}) => (
-	<div>
+	<div style={{marginTop: 10}}>
 		<h5 style={styles.h5}>Function Name Prefix</h5>
 		<code>
 				<pre style={styles.code}>
