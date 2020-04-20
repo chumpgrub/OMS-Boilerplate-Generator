@@ -14,9 +14,12 @@ import {
 	Button,
 	Typography
 } from '@material-ui/core';
+import axios from 'axios';
 
 import {PhpClass, FileName, FunctionName} from './components/CodeSamples';
 import {PostTypeLabels, TaxonomyLabels} from './components/PostTypeLabels';
+
+const API_PATH = `http://localhost:8888/api/index.php`
 
 const getClassName = (name) => {
 	return name.replace(/[\W_]+/g, '_')
@@ -116,6 +119,28 @@ class App extends Component {
 		this.setState({files: Object.assign({}, {...files})})
 	}
 	
+	handleSubmit = (e) => {
+		e.preventDefault()
+		
+		axios({
+			method: 'post',
+			url: `${API_PATH}`,
+			headers: {'content-type': 'application/json'},
+			proxy: {
+				host: 'localhost',
+				port: 8888,
+			},
+			data: this.state
+			})
+			.then(function (body) {
+				console.log(body)
+			})
+			.catch(function (error) {
+				console.log(error)
+			})
+		console.log(this.state)
+	}
+	
 	render() {
 		// Get properties from state.
 		const {name, baseClassName, filePrefix, functionPrefix, postTypeNames, postTypes, taxonomyNames, taxonomies, files} = this.state
@@ -198,7 +223,7 @@ class App extends Component {
 						           value={baseClassName}
 						           onChange={(e) => this.handleChange('baseClassName', e)}
 						           onBlur={(e) => this.handleBlur('baseClassName', e)}
-						           helperText={`Classes within plugin will be prepended with this value.`}
+						           helperText={`Plugin classes will be prepended with this value.`}
 						/>
 						<TextField id="file-prefix"
 						           label="File Prefix"
@@ -218,7 +243,7 @@ class App extends Component {
 						           disabled={functionPrefix ? false : true}
 						           onChange={(e) => this.handleChange('functionPrefix', e)}
 						           onBlur={(e) => this.handleBlur('functionPrefix', e)}
-						           helperText={`Global functional functions will be prefixed with this value to prevent code collisions.`}
+						           helperText={`Global functions will be prefixed with this value to prevent code collisions.`}
 						/>
 					</Grid>
 					<Grid item xs={7}>
@@ -370,14 +395,15 @@ class App extends Component {
 				</Box>
 				
 				<Grid container spacing={4}>
-					<Grid item xs={12} style={{margin: '30px 0 100px'}}>
+					<Grid item xs={12} style={{margin: '30px 0 60px'}}>
 						<Button variant="contained"
 						        color="primary"
 						        size="large"
+						        onClick={this.handleSubmit}
 						>Generate Plugin</Button>
 					</Grid>
 				</Grid>
-				
+			
 			</Container>
 		)
 	}
