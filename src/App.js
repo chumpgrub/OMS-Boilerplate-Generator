@@ -38,7 +38,7 @@ class App extends Component {
 	constructor(props) {
 		super(props)
 		this.state = {
-			name: '',
+			pluginName: '',
 			baseClassName: '',
 			filePrefix: '',
 			functionPrefix: '',
@@ -46,7 +46,7 @@ class App extends Component {
 			postTypes: null,
 			taxonomyNames: '',
 			taxonomies: null,
-			files: {
+			includeFiles: {
 				functions: true,
 				query: true,
 				template: true
@@ -56,16 +56,16 @@ class App extends Component {
 	}
 	
 	handlePluginNameChange = (e) => {
-		this.setState({name: e.target.value})
+		this.setState({pluginName: e.target.value})
 	}
 	
 	handlePluginNameBlur = (e) => {
-		const name = e.target.value.trim()
-		const baseClassName = getClassName(name)
-		const filePrefix = getFilePrefixName(name)
-		const functionPrefix = getFunctionPrefixName(name)
-		if (name.length) {
-			this.setState({name, baseClassName, filePrefix, functionPrefix})
+		const pluginName = e.target.value.trim()
+		const baseClassName = getClassName(pluginName)
+		const filePrefix = getFilePrefixName(pluginName)
+		const functionPrefix = getFunctionPrefixName(pluginName)
+		if (pluginName.length) {
+			this.setState({pluginName, baseClassName, filePrefix, functionPrefix})
 		}
 	}
 	
@@ -112,11 +112,11 @@ class App extends Component {
 	
 	handleFilesChange = (event) => {
 		// Get files prop.
-		const {files} = this.state
+		const {includeFiles} = this.state
 		// Update files object.
-		files[event.target.name] = event.target.checked
+		includeFiles[event.target.name] = event.target.checked
 		// Create new object with update files and replace to avoid mutation.
-		this.setState({files: Object.assign({}, {...files})})
+		this.setState({includeFiles: Object.assign({}, {...includeFiles})})
 	}
 	
 	handleSubmit = (e) => {
@@ -143,9 +143,9 @@ class App extends Component {
 	
 	render() {
 		// Get properties from state.
-		const {name, baseClassName, filePrefix, functionPrefix, postTypeNames, postTypes, taxonomyNames, taxonomies, files} = this.state
+		const {pluginName, baseClassName, filePrefix, functionPrefix, postTypeNames, postTypes, taxonomyNames, taxonomies, includeFiles} = this.state
 		// Get properties from files variable.
-		const {functions, query, template} = files
+		const {functions, query, template} = includeFiles
 		// Example code styles.
 		const styles = {
 			h3: {
@@ -198,7 +198,7 @@ class App extends Component {
 						           label="Plugin Name"
 						           required
 						           style={{width: '100%', marginBottom: 30}}
-						           value={name}
+						           value={pluginName}
 						           variant="outlined"
 						           onChange={this.handlePluginNameChange}
 						           onBlur={this.handlePluginNameBlur}
@@ -357,7 +357,7 @@ class App extends Component {
 					
 					</Grid>
 					<Grid item xs={7}>
-						{name &&
+						{pluginName &&
 						<Fragment>
 							{functions && (
 								<div>
