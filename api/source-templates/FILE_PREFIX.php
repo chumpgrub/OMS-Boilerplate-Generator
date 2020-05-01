@@ -55,18 +55,11 @@ class BASE_CLASS_NAME {
 	 * Include files necessary for plugin functionality.
 	 */
 	public function includes() {
+        INCLUDE_FUNCTIONS
+        INCLUDE_TEMPLATE
+        INCLUDE_QUERY
+        INCLUDE_POST_TYPE
 
-	    // Global functions necessary for plugin.
-		require_once plugin_dir_path( __FILE__ ) . 'includes/FILE_PREFIX-functions.php';
-
-		// Support for plugin-level templating.
-		require_once plugin_dir_path( __FILE__ ) . 'includes/class-FILE_PREFIX-template-loader.php';
-
-		// Query customization are handled here.
-		require_once plugin_dir_path( __FILE__ ) . 'includes/class-FILE_PREFIX-query.php';
-
-		// Post Type, Taxonomy and Term Definitions.
-		require_once plugin_dir_path( __FILE__ ) . 'includes/class-FILE_PREFIX-post-type.php';
 	}
 
 	/**

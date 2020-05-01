@@ -28,9 +28,9 @@ $data = '{
     }
   ],
   "includeFiles": {
-    "functions": true,
-    "query": true,
-    "template": false
+    "functions": false,
+    "template": false,
+    "query": true
   },
   "errors": {}
 }';
@@ -47,7 +47,13 @@ $data = '{
         'BASE_CLASS_NAME',
         'FILE_PREFIX',
         'FUNCTION_PREFIX',
-        'POST_TYPE_NAMES',
+    ];
+
+    const SEARCH_INCLUDES = [
+        'INCLUDE_FUNCTIONS',
+        'INCLUDE_TEMPLATE',
+        'INCLUDE_QUERY',
+        'INCLUDE_POST_TYPE',
     ];
 
     protected $sourceDir;
@@ -61,12 +67,27 @@ $data = '{
     public $includeQuery = true;
     public $includeTemplate = true;
 
+    protected $includeReplacements = [
+        'functions' => "
+        // Global functions necessary for plugin.
+        require_once plugin_dir_path( __FILE__ ) . 'includes/FILE_PREFIX-functions.php';",
+        'template' => "
+        // Support for plugin-level templating.
+        require_once plugin_dir_path( __FILE__ ) . 'includes/class-FILE_PREFIX-template-loader.php';",
+        'query' => "
+        // Query customization are handled here.
+        require_once plugin_dir_path( __FILE__ ) . 'includes/class-FILE_PREFIX-query.php';",
+        'postTypes' => "
+        // Post Type, Taxonomy and Term Definitions.
+        require_once plugin_dir_path( __FILE__ ) . 'includes/class-FILE_PREFIX-post-type.php';",
+    ];
+
     public function __construct($data = false)
     {
+        define('SOURCE_DIR', dirname(__FILE__) . '/source-templates');
 //        $this->data = json_decode(file_get_contents('php://input', true));
         $this->data = json_decode($data, true);
         $this->setProperties();
-        $this->setSourceDirectory();
         $this->setDestinationDirectory();
         // Set params.
         // Set plugin dir.
@@ -75,7 +96,6 @@ $data = '{
         // Write files with new file names to plugin dir.
         // Force download.
         // Empty plugin dir.
-
         $this->getSourceFiles();
     }
 
@@ -87,9 +107,13 @@ $data = '{
         $data = $this->data;
         foreach ($data as $property => $value) {
 
-            if (is_array($value) && ! empty($value)) {
+            if ('filePrefix' == $property) {
 
-                switch($property) {
+                $this->filePrefix = (!empty($value)) ? $value : 'oms-plugin';
+
+            } elseif (is_array($value) && !empty($value)) {
+
+                switch ($property) {
                     case 'postTypes':
                         $this->{$property} = $value;
                         $this->hasPostTypes = true;
@@ -100,7 +124,7 @@ $data = '{
                         break;
                     case 'includeFiles':
                         $this->{$property} = $value;
-                        $this->includeFunctions = ((bool) $value['functions']) ? true : false;
+                        $this->includeFunctions = ((bool)$value['functions']) ? true : false;
                         $this->includeQuery = ($value['query']) ? true : false;
                         $this->includeTemplate = ($value['template']) ? true : false;
                         break;
@@ -115,7 +139,7 @@ $data = '{
 
             }
         }
-        echo '<pre>' . print_r($data, true) . '</pre>';
+//        echo '<pre>' . print_r($data, true) . '</pre>';
     }
 
     /**
@@ -123,7 +147,8 @@ $data = '{
      *
      * @return array
      */
-    public function getReplacementProperties() {
+    public function getReplacementProperties()
+    {
         return [
             $this->pluginName,
             $this->baseClassName,
@@ -132,48 +157,175 @@ $data = '{
         ];
     }
 
-    private function setSourceDirectory()
-    {
-        $this->sourceDir = dirname(__FILE__) . '/source-templates/';
-    }
-
-    public function getSourceDirectory()
-    {
-        return $this->sourceDir;
-    }
-
     private function setDestinationDirectory()
     {
-        $this->destinationDir = dirname(__FILE__) . '/destination-templates/' . $this->filePrefix;
-        if ( ! is_dir( $this->destinationDir ) ) {
-            mkdir( $this->destinationDir );
+        // Ensure we have a destination directory.
+        $pluginDir = $this->filePrefix ? $this->filePrefix : 'oms-plugin';
+
+        define('DESTINATION_DIR', dirname(__FILE__) . '/destination-templates/' . $pluginDir);
+
+        if (!is_dir(DESTINATION_DIR)) {
+            mkdir(DESTINATION_DIR);
         }
     }
 
     private function getSourceFiles()
     {
-        $sourceDir = $this->getSourceDirectory();
-//        $file = file_get_contents($sourceDir . 'test.php');
-        // Get files and directories, exclude '.' and '..'.
-        $files = array_diff(scandir($sourceDir), ['.','..']);
-        echo '<pre>' . print_r($files, true) . '</pre>';
-        foreach($files as $file) {
-            $currentFile = $sourceDir.'/'.$file;
-            if (is_dir($currentFile)) {
 
-            }
-            if (file_exists($currentFile)) {
+        // Get files and directories, exclude '.' and '..'.
+        $files = array_diff(scandir(SOURCE_DIR), ['.', '..', 'templates', 'includes']);
+        $includeFiles = array_diff(scandir(SOURCE_DIR . '/includes'), ['.', '..']);
+        $templateFiles = array_diff(scandir(SOURCE_DIR . '/templates'), ['.', '..']);
+
+        echo '<h4>Files</h4>';
+        echo '<pre>' . print_r($files, true) . '</pre>';
+        echo '<h4>Includes</h4>';
+        echo '<pre>' . print_r($includeFiles, true) . '</pre>';
+        echo '<h4>Templates</h4>';
+        echo '<pre>' . print_r($templateFiles, true) . '</pre>';
+
+        $this->writeRootFiles();
+        $this->writeIncludeFiles();
+        $this->writeTemplateFiles();
+
+    }
+
+    private function mainPluginFile($sourceFile)
+    {
+
+        $replacements = $this->includeReplacements;
+
+        if (!$this->includeFunctions) {
+            $replacements['functions'] = '';
+        }
+
+        if (!$this->includeTemplate) {
+            $replacements['template'] = '';
+        }
+
+        if (!$this->includeQuery) {
+            $replacements['query'] = '';
+        }
+
+        if (!$this->hasPostTypes) {
+            $replacements['postTypes'] = '';
+        }
+
+        // String replacement operation on file contents.
+        return str_replace(self::SEARCH_INCLUDES, $replacements, $sourceFile);
+    }
+
+    private function writeFile($sourceFile, $file, $dir = FALSE)
+    {
+        $destinationDir = $dir ? DESTINATION_DIR . '/' . $dir : DESTINATION_DIR;
+
+        // String replacement operation on file contents.
+        $newFile = str_replace(self::SEARCH, $this->getReplacementProperties(), $sourceFile);
+
+        // String replacement on source file name for use in new file name.
+        $handle = fopen(str_replace(self::SEARCH, $this->getReplacementProperties(), $destinationDir . '/' . $file), 'w');
+
+        // Write updated file content to new destination file.
+        fwrite($handle, $newFile);
+
+    }
+
+    private function writeRootFiles()
+    {
+        // Get files, but exclude '.', '..', 'templates', and 'includes'.
+        $files = array_diff(scandir(SOURCE_DIR), ['.', '..', 'templates', 'includes']);
+
+        foreach ($files as $file) {
+
+            $currentFile = SOURCE_DIR . '/' . $file;
+
+            if (!is_dir($currentFile) && file_exists($currentFile)) {
+
+                // Read file contents into variable.
                 $sourceFile = file_get_contents($currentFile);
-                $newFile = str_replace(self::SEARCH, $this->getReplacementProperties(), $sourceFile);
-                echo '<pre>' . print_r( str_replace(self::SEARCH, $this->getReplacementProperties(), $file), true) . '</pre>';
-                $handle = fopen( str_replace(self::SEARCH, $this->getReplacementProperties(), $file), 'w' );
+
+                // Special operation for main plugin file.
+                if ($file === 'FILE_PREFIX.php') {
+                    // Move this stuff into current method.
+                    $sourceFile = $this->mainPluginFile($sourceFile);
+                }
+
+                $this->writeFile($sourceFile, $file);
             }
         }
-//        var_dump(dirname(__FILE__) . 'test.php');
-//        var_dump(file_exists(dirname(__FILE__) . 'test.php'));
-//        echo $file;
 
+    }
 
+    private function writeIncludeFiles()
+    {
+        // Get files and exclude '.' and '..'.
+        $files = array_diff(scandir(SOURCE_DIR . '/includes'), ['.', '..']);
+
+        // Flip array to easily remove unnecessary files by key.
+        $files = array_flip($files);
+
+        if (!$this->includeFunctions) {
+            unset($files['FILE_PREFIX-functions.php']);
+        }
+
+        if (!$this->includeTemplate) {
+            unset($files['class-FILE_PREFIX-template-loader.php']);
+        }
+
+        if (!$this->includeQuery) {
+            unset($files['class-FILE_PREFIX-query.php']);
+        }
+
+        if (!$this->hasPostTypes) {
+            unset($files['class-FILE_PREFIX-post-type.php']);
+        }
+
+        // Return array key/value orientation.
+        $files = array_flip($files);
+
+        if (!is_dir(DESTINATION_DIR . '/includes') && !empty($files)) {
+
+            mkdir(DESTINATION_DIR . '/includes');
+
+            foreach($files as $file) {
+
+                $currentFile = SOURCE_DIR . '/includes/' . $file;
+
+                if (!is_dir($currentFile) && file_exists($currentFile)) {
+
+                    // Read file contents into variable.
+                    $sourceFile = file_get_contents($currentFile);
+
+                    $this->writeFile($sourceFile, $file, 'includes');
+
+                }
+            }
+        }
+    }
+
+    private function writeTemplateFiles()
+    {
+        // Get files and exclude '.' and '..'.
+        $files = array_diff(scandir(SOURCE_DIR . '/templates'), ['.', '..']);
+
+        if (!is_dir(DESTINATION_DIR . '/templates') && !empty($files)) {
+
+            mkdir(DESTINATION_DIR . '/templates');
+
+            foreach($files as $file) {
+
+                $currentFile = SOURCE_DIR . '/templates/' . $file;
+
+                if (!is_dir($currentFile) && file_exists($currentFile)) {
+
+                    // Read file contents into variable.
+                    $sourceFile = file_get_contents($currentFile);
+
+                    $this->writeFile($sourceFile, $file, 'templates');
+
+                }
+            }
+        }
     }
 
     public function getPluginCode()
