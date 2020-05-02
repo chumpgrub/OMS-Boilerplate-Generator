@@ -30,7 +30,7 @@ $data = '{
   "includeFiles": {
     "functions": false,
     "template": false,
-    "query": true
+    "query": false
   },
   "errors": {}
 }';
@@ -67,24 +67,30 @@ $data = '{
     public $includeQuery = true;
     public $includeTemplate = true;
 
-    protected $includeReplacements = [
-        'functions' => "
-        // Global functions necessary for plugin.
-        require_once plugin_dir_path( __FILE__ ) . 'includes/FILE_PREFIX-functions.php';",
-        'template' => "
-        // Support for plugin-level templating.
-        require_once plugin_dir_path( __FILE__ ) . 'includes/class-FILE_PREFIX-template-loader.php';",
-        'query' => "
-        // Query customization are handled here.
-        require_once plugin_dir_path( __FILE__ ) . 'includes/class-FILE_PREFIX-query.php';",
-        'postTypes' => "
-        // Post Type, Taxonomy and Term Definitions.
-        require_once plugin_dir_path( __FILE__ ) . 'includes/class-FILE_PREFIX-post-type.php';",
-    ];
-
     public function __construct($data = false)
     {
         define('SOURCE_DIR', dirname(__FILE__) . '/source-templates');
+        define('FUNCTIONS', [
+            'start' => '/* FUNCTIONS_START */',
+            'end' => '/* FUNCTIONS_END */'
+        ]);
+        define('QUERY', [
+            'start' => '/* QUERY_START */',
+            'end' => '/* QUERY_END */'
+        ]);
+        define('TEMPLATE', [
+            'start' => '/* TEMPLATE_START */',
+            'end' => '/* TEMPLATE_END */'
+        ]);
+        define('POST_TYPE', [
+            'start' => '/* POST_TYPE_START */',
+            'end' => '/* POST_TYPE_END */'
+        ]);
+        define('TAXONOMY', [
+            'start' => '/* TAXONOMY_START */',
+            'end' => '/* TAXONOMY_END */'
+        ]);
+
 //        $this->data = json_decode(file_get_contents('php://input', true));
         $this->data = json_decode($data, true);
         $this->setProperties();
@@ -171,48 +177,9 @@ $data = '{
 
     private function getSourceFiles()
     {
-
-        // Get files and directories, exclude '.' and '..'.
-        $files = array_diff(scandir(SOURCE_DIR), ['.', '..', 'templates', 'includes']);
-        $includeFiles = array_diff(scandir(SOURCE_DIR . '/includes'), ['.', '..']);
-        $templateFiles = array_diff(scandir(SOURCE_DIR . '/templates'), ['.', '..']);
-
-        echo '<h4>Files</h4>';
-        echo '<pre>' . print_r($files, true) . '</pre>';
-        echo '<h4>Includes</h4>';
-        echo '<pre>' . print_r($includeFiles, true) . '</pre>';
-        echo '<h4>Templates</h4>';
-        echo '<pre>' . print_r($templateFiles, true) . '</pre>';
-
         $this->writeRootFiles();
         $this->writeIncludeFiles();
         $this->writeTemplateFiles();
-
-    }
-
-    private function mainPluginFile($sourceFile)
-    {
-
-        $replacements = $this->includeReplacements;
-
-        if (!$this->includeFunctions) {
-            $replacements['functions'] = '';
-        }
-
-        if (!$this->includeTemplate) {
-            $replacements['template'] = '';
-        }
-
-        if (!$this->includeQuery) {
-            $replacements['query'] = '';
-        }
-
-        if (!$this->hasPostTypes) {
-            $replacements['postTypes'] = '';
-        }
-
-        // String replacement operation on file contents.
-        return str_replace(self::SEARCH_INCLUDES, $replacements, $sourceFile);
     }
 
     private function writeFile($sourceFile, $file, $dir = FALSE)
@@ -227,7 +194,6 @@ $data = '{
 
         // Write updated file content to new destination file.
         fwrite($handle, $newFile);
-
     }
 
     private function writeRootFiles()
@@ -244,16 +210,40 @@ $data = '{
                 // Read file contents into variable.
                 $sourceFile = file_get_contents($currentFile);
 
-                // Special operation for main plugin file.
-                if ($file === 'FILE_PREFIX.php') {
-                    // Move this stuff into current method.
-                    $sourceFile = $this->mainPluginFile($sourceFile);
+                // Handle functions file include.
+                if (!$this->includeFunctions) {
+                    $sourceFile = $this->replaceBetween($sourceFile, FUNCTIONS['start'], FUNCTIONS['end'], '', true);
+                } else {
+                    $sourceFile = str_replace(FUNCTIONS, '', $sourceFile);
+                }
+
+                // Handle query file include.
+                if (!$this->includeQuery) {
+                    $sourceFile = $this->replaceBetween($sourceFile, QUERY['start'], QUERY['end'], '', true);
+                } else {
+                    $sourceFile = str_replace(QUERY, '', $sourceFile);
+                }
+
+                // Handle template file include.
+                if (!$this->includeTemplate) {
+                    $sourceFile = $this->replaceBetween($sourceFile, TEMPLATE['start'], TEMPLATE['end'], '', true);
+                } else {
+                    $sourceFile = str_replace(TEMPLATE, '', $sourceFile);
+                }
+
+                // Handle post types file include.
+                if (!$this->hasPostTypes && !$this->hasTaxonomies) {
+                    $sourceFile = $this->replaceBetween($sourceFile, POST_TYPE['start'], POST_TYPE['end'], '', true, 0, true);
+                    $sourceFile = $this->replaceBetween($sourceFile, TAXONOMY['start'], TAXONOMY['end'], '', true, 0, true);
+                } else {
+                    $sourceFile = str_replace(POST_TYPE, '', $sourceFile);
+                    $sourceFile = str_replace(TAXONOMY, '', $sourceFile);
                 }
 
                 $this->writeFile($sourceFile, $file);
+
             }
         }
-
     }
 
     private function writeIncludeFiles()
@@ -276,7 +266,7 @@ $data = '{
             unset($files['class-FILE_PREFIX-query.php']);
         }
 
-        if (!$this->hasPostTypes) {
+        if (!$this->hasPostTypes && !$this->hasTaxonomies) {
             unset($files['class-FILE_PREFIX-post-type.php']);
         }
 
@@ -287,7 +277,7 @@ $data = '{
 
             mkdir(DESTINATION_DIR . '/includes');
 
-            foreach($files as $file) {
+            foreach ($files as $file) {
 
                 $currentFile = SOURCE_DIR . '/includes/' . $file;
 
@@ -295,6 +285,16 @@ $data = '{
 
                     // Read file contents into variable.
                     $sourceFile = file_get_contents($currentFile);
+
+                    if (!$this->hasPostTypes && !$this->hasTaxonomies) {
+                        $sourceFile = $this->replaceBetween($sourceFile, POST_TYPE['start'], POST_TYPE['end'], '', true, 0, true);
+                        $sourceFile = $this->replaceBetween($sourceFile, TAXONOMY['start'], TAXONOMY['end'], '', true, 0, true);
+                    } else {
+                        $sourceFile = str_replace(POST_TYPE, '', $sourceFile);
+                        $sourceFile = str_replace(TAXONOMY, '', $sourceFile);
+                        $sourceFile = str_replace(['POST_TYPE_SINGULAR', 'POST_TYPE_PLURAL'], 
+                            , $sourceFile);
+                    }
 
                     $this->writeFile($sourceFile, $file, 'includes');
 
@@ -312,7 +312,7 @@ $data = '{
 
             mkdir(DESTINATION_DIR . '/templates');
 
-            foreach($files as $file) {
+            foreach ($files as $file) {
 
                 $currentFile = SOURCE_DIR . '/templates/' . $file;
 
@@ -326,6 +326,50 @@ $data = '{
                 }
             }
         }
+    }
+
+    /**
+     * Utility for replacing string content.
+     * @see https://stackoverflow.com/questions/6875913/simple-how-to-replace-all-between-with-php#answer-55745025
+     * @param $string
+     * @param $needleStart
+     * @param $needleEnd
+     * @param $replacement
+     * @param bool $replaceNeedles
+     * @param int $startPos
+     * @param bool $replaceAll
+     * @return mixed
+     */
+    public function replaceBetween($string, $needleStart, $needleEnd, $replacement, $replaceNeedles = false, $startPos = 0, $replaceAll = false)
+    {
+        $posStart = mb_strpos($string, $needleStart, $startPos);
+
+        if ($posStart === false) {
+            return $string;
+        }
+
+        $start = $posStart + ($replaceNeedles ? 0 : mb_strlen($needleStart));
+        $posEnd = mb_strpos($string, $needleEnd, $start);
+
+        if ($posEnd === false) {
+            return $string;
+        }
+
+        $length = $posEnd - $start + ($replaceNeedles ? mb_strlen($needleEnd) : 0);
+
+        $result = substr_replace($string, $replacement, $start, $length);
+
+        if ($replaceAll) {
+            $nextStartPos = $start + mb_strlen($replacement) + mb_strlen($needleEnd);
+
+            if ($nextStartPos >= mb_strlen($string)) {
+                return $result;
+            }
+
+            return $this->replaceBetween($result, $needleStart, $needleEnd, $replacement, $replaceNeedles, $nextStartPos, true);
+        }
+
+        return $result;
     }
 
     public function getPluginCode()

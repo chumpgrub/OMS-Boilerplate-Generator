@@ -55,11 +55,14 @@ class BASE_CLASS_NAME {
 	 * Include files necessary for plugin functionality.
 	 */
 	public function includes() {
-        INCLUDE_FUNCTIONS
-        INCLUDE_TEMPLATE
-        INCLUDE_QUERY
-        INCLUDE_POST_TYPE
-
+	    /* FUNCTIONS_START */// Global functions necessary for plugin.
+        require_once plugin_dir_path( __FILE__ ) . 'includes/FILE_PREFIX-functions.php';/* FUNCTIONS_END */
+        /* TEMPLATE_START */// Support for plugin-level templating.
+        require_once plugin_dir_path( __FILE__ ) . 'includes/class-FILE_PREFIX-template-loader.php';/* TEMPLATE_END */
+        /* QUERY_START */// Query customization are handled here.
+        require_once plugin_dir_path( __FILE__ ) . 'includes/class-FILE_PREFIX-query.php';/* QUERY_END */
+        /* POST_TYPE_START */// Post Type, Taxonomy and Term Definitions.
+        require_once plugin_dir_path( __FILE__ ) . 'includes/class-FILE_PREFIX-post-type.php';/* POST_TYPE_END */
 	}
 
 	/**
@@ -76,12 +79,11 @@ class BASE_CLASS_NAME {
 		add_filter( 'orbitmedia_page_title', [ $this, 'page_title' ] );
 
 		add_filter( 'orbitmedia_header_image_record_id', [ $this, 'header_image_record_id' ] );
-
+        /* POST_TYPE_START */
 		// Add WooSidebars support for POST_TYPE_NAMES.
-		// @todo Support for multiple post types...
 		if ( class_exists( 'Woo_Sidebars' ) ) :
 			add_post_type_support( BASE_CLASS_NAME_Post_Types::POST_TYPE, 'woosidebars' );
-		endif;
+		endif;/* POST_TYPE_END */
 	}
 
 	/**
