@@ -1,0 +1,33 @@
+
+		if ( ! taxonomy_exists( BASE_CLASS_NAME_Post_Types::TAXONOMY ) ) :
+
+			register_taxonomy( BASE_CLASS_NAME_Post_Types::TAXONOMY,
+
+				// Filter to modify on which post types this taxonomy can appear.
+				apply_filters( 'oms_taxonomy_objects_SLUG', [ BASE_CLASS_NAME_Post_Types::POST_TYPE ] ),
+
+				// Filter to modify taxonomy.
+				apply_filters( 'oms_taxonomy_args_SLUG', [
+					'hierarchical'      => TRUE,
+					'label'             => __( 'PLURAL', 'FILE_PREFIX' ),
+					'labels'            => [
+						'name'              => __( 'PLURAL', 'FILE_PREFIX' ),
+						'singular_name'     => __( 'SINGULAR', 'FILE_PREFIX' ),
+						'menu_name'         => _x( 'PLURAL', 'Admin menu name', 'FILE_PREFIX' ),
+						'search_items'      => __( 'Search PLURAL', 'FILE_PREFIX' ),
+						'all_items'         => __( 'All PLURAL', 'FILE_PREFIX' ),
+						'parent_item'       => __( 'Parent SINGULAR', 'FILE_PREFIX' ),
+						'parent_item_colon' => __( 'Parent SINGULAR:', 'FILE_PREFIX' ),
+						'edit_item'         => __( 'Edit SINGULAR', 'FILE_PREFIX' ),
+						'update_item'       => __( 'Update SINGULAR', 'FILE_PREFIX' ),
+						'add_new_item'      => __( 'Add New SINGULAR', 'FILE_PREFIX' ),
+						'new_item_name'     => __( 'New SINGULAR Name', 'FILE_PREFIX' ),
+					],
+					'show_ui'           => TRUE,
+					'query_var'         => TRUE,
+					'public'            => TRUE,
+					'show_admin_column' => TRUE,
+				] )
+			);
+
+		endif;

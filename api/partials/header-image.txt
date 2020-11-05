@@ -1,0 +1,3 @@
+		if ( is_post_type_archive( BASE_CLASS_NAME_Post_Types::POST_TYPE ) ) :
+			return BASE_CLASS_NAME_Post_Types::POST_TYPE;
+		endif;

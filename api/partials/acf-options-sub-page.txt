@@ -1,0 +1,6 @@
+
+            acf_add_options_sub_page( array(
+                'page_title' => 'PLURAL Settings',
+                'parent'     => 'edit.php?post_type=' . BASE_CLASS_NAME_Post_Types::POST_TYPE,
+                'post_id'    => BASE_CLASS_NAME_Post_Types::POST_TYPE,
+            ) );

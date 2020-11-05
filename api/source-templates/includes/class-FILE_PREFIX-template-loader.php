@@ -22,30 +22,23 @@ class BASE_CLASS_NAME_Template_Loader {
 	 * @return string           Path to template
 	 */
 	public static function load_template( $template ) {
-		global $wp_query;
 
 		$file = '';
 
-		if ( is_singular( BASE_CLASS_NAME_Post_Types::POST_TYPE ) ) :
+		if ( is_singular( BASE_CLASS_NAME_Post_Types::getPostTypes() ) ) {
+            $file = 'single-FILE_PREFIX.php';
+        } elseif ( is_post_type_archive( BASE_CLASS_NAME_Post_Types::getPostTypes() ) && ! is_search() ) {
+            $file = 'archive-FILE_PREFIX.php';
+        }
 
-			$file = 'single-BOILERPLATE.php';
+		if ( $file ) {
+            // Check theme directory for template file, first.
+            $template = locate_template( [ 'FILE_PREFIX/' . $file, $file ] );
 
-		elseif ( is_post_type_archive( BASE_CLASS_NAME_Post_Types::POST_TYPE ) && ! is_search() ) :
-
-			$file = 'archive-BOILERPLATE.php';
-
-		endif;
-
-		if ( $file ) :
-
-			// Check theme directory for template file, first.
-			$template = locate_template( [ 'FILE_PREFIX/' . $file, $file ] );
-
-			if ( ! $template ) :
-				$template = BASE_CLASS_NAME::plugin_path() . '/templates/' . $file;
-			endif;
-
-		endif;
+            if ( ! $template ) {
+                $template = BASE_CLASS_NAME::plugin_path() . '/templates/' . $file;
+            }
+        }
 
 		return $template;
 	}

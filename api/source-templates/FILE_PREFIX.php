@@ -30,9 +30,9 @@ class BASE_CLASS_NAME {
 	 * @return null|\BASE_CLASS_NAME
 	 */
 	public static function instance() {
-		if ( is_null( self::$_instance ) ) :
-			self::$_instance = new self();
-		endif;
+		if ( is_null( self::$_instance ) ) {
+            self::$_instance = new self();
+        }
 
 		return self::$_instance;
 	}
@@ -72,18 +72,16 @@ class BASE_CLASS_NAME {
 
 	    // Enforce Advanced Custom Fields plugin as dependency.
 		add_action( 'admin_init', [ $this, 'acf_is_active' ] );
-
+        /* POST_TYPE_START */
 		// Create Advanced Custom Fields options sub-page.
 		add_action( 'init', [ $this, 'add_options_sub_page' ] );
 
+		// Add WooSidebars support for custom post types.
+        add_action( 'init', [ $this, 'add_woosidebars_support' ] );
+        /* POST_TYPE_END */
 		add_filter( 'orbitmedia_page_title', [ $this, 'page_title' ] );
 
 		add_filter( 'orbitmedia_header_image_record_id', [ $this, 'header_image_record_id' ] );
-        /* POST_TYPE_START */
-		// Add WooSidebars support for POST_TYPE_NAMES.
-		if ( class_exists( 'Woo_Sidebars' ) ) :
-			add_post_type_support( BASE_CLASS_NAME_Post_Types::POST_TYPE, 'woosidebars' );
-		endif;/* POST_TYPE_END */
 	}
 
 	/**
@@ -99,39 +97,42 @@ class BASE_CLASS_NAME {
 	 * Check for ACF Pro before activating this plugin
 	 */
 	public function acf_is_active() {
-		if ( is_admin() && current_user_can( 'activate_plugins' ) && ! is_plugin_active( 'advanced-custom-fields-pro/acf.php' ) ) :
+		if ( is_admin() && current_user_can( 'activate_plugins' ) && ! is_plugin_active( 'advanced-custom-fields-pro/acf.php' ) ) {
 
-			add_action( 'admin_notices', [ $this, 'plugin_notice' ] );
+            add_action( 'admin_notices', [ $this, 'plugin_notice' ] );
+            deactivate_plugins( plugin_basename( __FILE__ ) );
 
-			deactivate_plugins( plugin_basename( __FILE__ ) );
-
-			if ( isset( $_GET['activate'] ) ) :
-				unset( $_GET['activate'] );
-			endif;
-
-		endif;
+            if ( isset( $_GET['activate'] ) ) {
+                unset( $_GET['activate'] );
+            }
+        }
 	}
-
-	/**
-	 * Add ACF Options Sub Page to BASE_CLASS_NAME menu.
+/* POST_TYPE_START */
+    /**
+	 * Add ACF Options Sub Page to post type menus.
 	 */
 	public function add_options_sub_page() {
-		if ( function_exists( 'acf_add_options_page' ) ) :
-			acf_add_options_sub_page( array(
-				'page_title' => 'BASE_CLASS_NAME Settings',
-				'parent'     => 'edit.php?post_type=' . BASE_CLASS_NAME_Post_Types::POST_TYPE,
-				'post_id'    => BASE_CLASS_NAME_Post_Types::POST_TYPE,
-			) );
-		endif;
+		if ( function_exists( 'acf_add_options_page' ) ) {
+/* ACF_OPTIONS_SUB_PAGE_PARTIAL */
+        }
 	}
 
+    /**
+     * Add WooSidebars support for custom post types.
+     */
+    public function add_woosidebars_support() {
+        if ( class_exists( 'Woo_Sidebars' ) && BASE_CLASS_NAME_Post_Types::getPostTypes() ) {
+            foreach ( BASE_CLASS_NAME_Post_Types::getPostTypes() as $post_type ) {
+                add_post_type_support( $post_type, 'woosidebars' );
+            }
+        }
+    }
+    /* POST_TYPE_END */
 	/**
 	 * Error notice if ACF Pro not installed.
 	 */
 	public function plugin_notice() {
-		?>
-        <div class="error"><p>PLUGIN_NAME requires Advanced Custom Fields Pro to be installed and active.</p></div>
-        <?php
+        echo '<div class="error"><p>PLUGIN_NAME requires Advanced Custom Fields Pro to be installed and active.</p></div>';
 	}
 
 	/**
@@ -142,13 +143,12 @@ class BASE_CLASS_NAME {
 	 * @return string
 	 */
 	public function page_title( $title ) {
-		if ( is_post_type_archive( BASE_CLASS_NAME_Post_Types::POST_TYPE ) ) :
-            $title = get_field( 'title', BASE_CLASS_NAME_Post_Types::POST_TYPE );
-		    if ( $title ) :
-    			return '<h1>' . $title . '</h1>';
-		    endif;
-		endif;
-
+        if ( BASE_CLASS_NAME_Post_Types::getPostTypes() ) {
+            if ( is_post_type_archive( BASE_CLASS_NAME_Post_Types::getPostTypes() ) ) {
+                $title = get_field( 'title', get_queried_object()->name );
+                return ( $title ) ? sprintf( '<h1>%s</h1>', $title ) : $title;
+            }
+        }
 		return $title;
 	}
 
@@ -161,10 +161,11 @@ class BASE_CLASS_NAME {
 	 * @return string|integer $record_id Either Post ID or CPT slug.
 	 */
 	public function header_image_record_id( $record_id ) {
-		if ( is_post_type_archive( BASE_CLASS_NAME_Post_Types::POST_TYPE ) ) :
-			return BASE_CLASS_NAME_Post_Types::POST_TYPE;
-		endif;
-
+        if ( BASE_CLASS_NAME_Post_Types::getPostTypes() ) {
+            if ( is_post_type_archive( BASE_CLASS_NAME_Post_Types::getPostTypes() ) ) {
+                return get_queried_object()->name;
+            }
+        }
 		return $record_id;
 	}
 }

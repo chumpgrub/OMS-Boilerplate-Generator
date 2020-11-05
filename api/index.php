@@ -9,11 +9,15 @@ $data = '{
   "baseClassName": "OMS_Events",
   "filePrefix": "oms-events",
   "functionPrefix": "oms_events",
-  "postTypeNames": "Events",
+  "postTypeNames": "Events, Webinars",
   "postTypes": [
     {
       "singular": "Event",
       "plural": "Events"
+    },
+    {
+      "singular": "Webinar",
+      "plural": "Webinars"
     }
   ],
   "taxonomyNames": "Category, Location",
@@ -28,14 +32,18 @@ $data = '{
     }
   ],
   "includeFiles": {
-    "functions": false,
-    "template": false,
-    "query": false
+    "functions": true,
+    "template": true,
+    "query": true
   },
   "errors": {}
 }';
 
-(new OMS_Boilerplate($data))->getPluginCode();
+$boilerplate = new OMS_Boilerplate($data);
+$boilerplate->getPluginCode();
+echo '<pre>' . print_r($boilerplate, true) . '</pre>';
+//echo '<pre>' . print_r($boilerplate->getConstants(), true) . '</pre>';
+//(new OMS_Boilerplate($data))->getPluginCode();
 
 ?>
 
@@ -69,6 +77,13 @@ $data = '{
 
     public function __construct($data = false)
     {
+
+        include 'class-test.php';
+        echo '<pre>' . print_r(MyClass::getConstants(), true) . '</pre>';
+        echo '<pre>' . print_r(MyClass::getPostTypes(), true) . '</pre>';
+        echo '<pre>' . print_r(MyClass::getTaxonomies(), true) . '</pre>';
+//        die();
+
         define('SOURCE_DIR', dirname(__FILE__) . '/source-templates');
         define('FUNCTIONS', [
             'start' => '/* FUNCTIONS_START */',
@@ -84,11 +99,13 @@ $data = '{
         ]);
         define('POST_TYPE', [
             'start' => '/* POST_TYPE_START */',
-            'end' => '/* POST_TYPE_END */'
+            'end' => '/* POST_TYPE_END */',
+//            'registration' => '/* POST_TYPE_REGISTRATION */',
         ]);
         define('TAXONOMY', [
             'start' => '/* TAXONOMY_START */',
-            'end' => '/* TAXONOMY_END */'
+            'end' => '/* TAXONOMY_END */',
+//            'registration' => '/* TAXONOMY_REGISTRATION */',
         ]);
 
 //        $this->data = json_decode(file_get_contents('php://input', true));
@@ -103,6 +120,11 @@ $data = '{
         // Force download.
         // Empty plugin dir.
         $this->getSourceFiles();
+    }
+
+    public function getConstants()
+    {
+        return (new ReflectionClass($this))->getConstants();
     }
 
     /**
@@ -232,12 +254,54 @@ $data = '{
                 }
 
                 // Handle post types file include.
+                // If no post types or taxonomies, remove placeholder and content.
                 if (!$this->hasPostTypes && !$this->hasTaxonomies) {
                     $sourceFile = $this->replaceBetween($sourceFile, POST_TYPE['start'], POST_TYPE['end'], '', true, 0, true);
-                    $sourceFile = $this->replaceBetween($sourceFile, TAXONOMY['start'], TAXONOMY['end'], '', true, 0, true);
                 } else {
                     $sourceFile = str_replace(POST_TYPE, '', $sourceFile);
-                    $sourceFile = str_replace(TAXONOMY, '', $sourceFile);
+
+                    if ($this->hasPostTypes) {
+
+                        // ACF Sub-Page Partial.
+                        $acf_source = file_get_contents( dirname(__FILE__) .'/partials/acf-options-sub-page.txt' );
+                        // Page Title Partial.
+                        $page_title_source = file_get_contents(dirname(__FILE__).'/partials/page-title.txt');
+                        // Header Image Partial.
+                        $header_image_source = file_get_contents(dirname(__FILE__).'/partials/header-image.txt');
+                        $acf_options_sub_page = '';
+                        $page_title = '';
+                        $header_image = '';
+
+                        foreach($this->postTypes as $postType) {
+
+                            // Search values.
+                            $search = ['PLURAL','SINGULAR','POST_TYPE','SLUG'];
+
+                            // Replacement values for partials.
+                            $replacements = [
+                                'PLURAL' => $postType['plural'],
+                                'SINGULAR' => $postType['singular'],
+                                'POST_TYPE' => sprintf('POST_TYPE_%s', $this->stringToConst($postType['singular'])),
+                                'SLUG' => $this->stringToSlug($postType['plural']),
+                            ];
+
+                            // Replace ACF placeholder.
+                            $acf_options_sub_page .= str_replace($search, $replacements, $acf_source);
+                            // Replace Page Title placeholder.
+                            $page_title .= str_replace($search, $replacements, $page_title_source);
+                            // Replace Header Image placeholder.
+                            $header_image .= str_replace($search, $replacements, $header_image_source);
+                        }
+
+                        // Update ACF Options Sub-Page section.
+                        $sourceFile = str_replace('/* ACF_OPTIONS_SUB_PAGE_PARTIAL */', $acf_options_sub_page, $sourceFile);
+
+                        // Update Page Title section.
+                        $sourceFile = str_replace('/* PAGE_TITLE_PARTIAL */', $page_title, $sourceFile);
+
+                        // Update Header Image section.
+                        $sourceFile = str_replace('/* HEADER_IMAGE_PARTIAL */', $header_image, $sourceFile);
+                    }
                 }
 
                 $this->writeFile($sourceFile, $file);
@@ -245,6 +309,8 @@ $data = '{
             }
         }
     }
+
+    private function includeSidebarSupport(){}
 
     private function writeIncludeFiles()
     {
@@ -274,8 +340,10 @@ $data = '{
         $files = array_flip($files);
 
         if (!is_dir(DESTINATION_DIR . '/includes') && !empty($files)) {
-
             mkdir(DESTINATION_DIR . '/includes');
+        }
+
+        if (is_dir(DESTINATION_DIR . '/includes') && !empty($files)) {
 
             foreach ($files as $file) {
 
@@ -286,14 +354,33 @@ $data = '{
                     // Read file contents into variable.
                     $sourceFile = file_get_contents($currentFile);
 
+                    // Cleanup source file if no post types or taxonomies
                     if (!$this->hasPostTypes && !$this->hasTaxonomies) {
                         $sourceFile = $this->replaceBetween($sourceFile, POST_TYPE['start'], POST_TYPE['end'], '', true, 0, true);
                         $sourceFile = $this->replaceBetween($sourceFile, TAXONOMY['start'], TAXONOMY['end'], '', true, 0, true);
                     } else {
+
                         $sourceFile = str_replace(POST_TYPE, '', $sourceFile);
                         $sourceFile = str_replace(TAXONOMY, '', $sourceFile);
-                        $sourceFile = str_replace(['POST_TYPE_SINGULAR', 'POST_TYPE_PLURAL'], 
-                            , $sourceFile);
+
+                        if ($this->hasPostTypes) {
+                            $postTypeProperties = $this->includePostTypeProperties();
+                            $sourceFile = str_replace('/* POST_TYPE_CONST */', $postTypeProperties, $sourceFile);
+                            $postTypeRegistration = $this->includePostTypes();
+                            $sourceFile = str_replace('/* POST_TYPE_REGISTRATION */', $postTypeRegistration, $sourceFile);
+                        } else {
+                            $sourceFile = str_replace('/* POST_TYPE_REGISTRATION */', '', $sourceFile);
+                        }
+
+                        if ($this->taxonomies) {
+                            $taxonomyProperties = $this->includeTaxonomyProperties();
+                            $sourceFile = str_replace('/* TAXONOMY_CONST */', $taxonomyProperties, $sourceFile);
+                            $taxonomyRegistration = $this->includeTaxonomies();
+                            $sourceFile = str_replace('/* TAXONOMY_REGISTRATION */', $taxonomyRegistration, $sourceFile);
+                        } else {
+                            $sourceFile = str_replace('/* TAXONOMY_REGISTRATION */', '', $sourceFile);
+                        }
+
                     }
 
                     $this->writeFile($sourceFile, $file, 'includes');
@@ -326,6 +413,124 @@ $data = '{
                 }
             }
         }
+    }
+
+    private function includePostTypes()
+    {
+        $return = '';
+
+        if (empty($this->postTypes)) return false;
+
+        $search = [];
+        $replace = [];
+
+        // Set up $search and $replace arrays.
+        foreach ($this->postTypes as $index => $postType) {
+            foreach ($postType as $key => $value) {
+                $search[$index][] = strtoupper($key);
+                $replace[$index][] = $value;
+            }
+            $search[$index][] = 'SLUG';
+            $replace[$index][] = str_replace(' ', '-', strtolower($value));
+            $search[$index][] = 'CONST';
+            $replace[$index][] = 'POST_TYPE_' . str_replace(' ', '_', strtoupper($postType['singular']));
+        }
+
+        foreach ($search as $index => $s) {
+            $sourceFile = file_get_contents('./partials/post-type/register-post-type.txt');
+            $return .= str_replace($s, $replace[$index], $sourceFile);
+        }
+
+        return $return;
+    }
+
+    private function includeTaxonomies()
+    {
+        $return = '';
+
+        if (empty($this->taxonomies)) return false;
+
+        $search = [];
+        $replace = [];
+
+        echo '<pre>' . print_r($this->taxonomies, true) . '</pre>';
+
+        // Set up $search and $replace arrays.
+        foreach ($this->taxonomies as $index => $taxonomy) {
+            foreach ($taxonomy as $key => $value) {
+                $search[$index][] = strtoupper($key);
+                $replace[$index][] = $value;
+            }
+            $search[$index][] = 'SLUG';
+            $replace[$index][] = str_replace(' ', '-', strtolower($value));
+            $search[$index][] = 'CONST';
+            $replace[$index][] = 'TAXONOMY_' . str_replace(' ', '_', strtoupper($taxonomy['singular']));
+        }
+
+        foreach ($search as $index => $s) {
+            $sourceFile = file_get_contents('./partials/post-type/register-taxonomy.txt');
+            $return .= str_replace($s, $replace[$index], $sourceFile);
+        }
+
+        return $return;
+    }
+
+    /**
+     * Generate CONST properties for Post Types.
+     * @return bool|string
+     */
+    private function includePostTypeProperties()
+    {
+        $return = '';
+
+        if (empty($this->postTypes)) return false;
+
+        foreach ($this->postTypes as $postType) {
+            $constKey = sprintf('POST_TYPE_%s', $this->stringToConst($postType['singular']));
+            $constValue = strtolower(str_replace(' ', '_', $postType['singular']));
+            $return .= "\t// Post Type {$postType['singular']}.\n\tconst {$constKey} = '{$constValue}';\n";
+        }
+
+        return $return;
+    }
+
+    /**
+     * Generate CONST properties for Taxonomies.
+     * @return bool|string
+     */
+    private function includeTaxonomyProperties()
+    {
+        $return = '';
+
+        if (empty($this->taxonomies)) return false;
+
+        foreach ($this->taxonomies as $taxonomy) {
+            $constKey = sprintf('TAXONOMY_%s', $this->stringToConst($taxonomy['singular']));
+            $constValue = strtolower(str_replace(' ', '_', $taxonomy['singular']));
+            $return .= "\t// Taxonomy {$taxonomy['singular']}.\n\tconst {$constKey} = '{$constValue}';\n";
+        }
+
+        return $return;
+    }
+
+    private function queryPostTypeReplacements()
+    {
+        $return = '';
+
+        if (empty($this->postTypes)) return false;
+
+        if (count($this->postTypes) > 1) {
+            $return = '[ ';
+            foreach ($this->postTypes as $postType) {
+                $postTypeConst = str_replace(' ', '_', strtoupper($postType['singular']));
+                $return .= sprintf('%s_Post_Type::POST_TYPE_%s, ', $this->baseClassName, $postTypeConst);
+            }
+            $return .= ']';
+        } else {
+            $postTypeConst = str_replace(' ', '_', strtoupper($this->postTypes[0]['singular']));
+            $return .= sprintf('%s_Post_Type::POST_TYPE_%s ', $this->baseClassName, $postTypeConst);
+        }
+        return $return;
     }
 
     /**
@@ -375,6 +580,26 @@ $data = '{
     public function getPluginCode()
     {
 //        echo json_encode($this->data);
+    }
+
+    /**
+     * Convert sting to slug.
+     * @param $string
+     * @return string|string[]|null
+     */
+    public function stringToSlug($string)
+    {
+        return preg_replace('/\W+/', '-', strtolower($string));
+    }
+
+    /**
+     * Convert string to const.
+     * @param $string
+     * @return string|string[]|null
+     */
+    public function stringToConst($string)
+    {
+        return preg_replace('/\W+/', '_', strtoupper($string));
     }
 
 }

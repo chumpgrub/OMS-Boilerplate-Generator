@@ -1,0 +1,7 @@
+		if ( is_post_type_archive( BASE_CLASS_NAME_Post_Types::POST_TYPE ) ) :
+            $title = get_field( 'title', BASE_CLASS_NAME_Post_Types::POST_TYPE );
+		    if ( $title ) :
+    			return '<h1>' . $title . '</h1>';
+		    endif;
+		endif;
+

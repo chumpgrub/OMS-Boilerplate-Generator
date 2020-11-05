@@ -12,12 +12,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 class BASE_CLASS_NAME_Query {
 
 	public static function init() {
-		add_action( 'pre_get_posts', array( __CLASS__, 'pre_get_posts' ) );
+		add_action( 'pre_get_posts', [ __CLASS__, 'pre_get_posts' ] );
 	}
 
 	/**
 	 * Hook into pre_get_posts to do the main BASE_CLASS_NAME query.
-	 * @todo Consider another token for above comment.
 	 *
 	 * @param mixed $query Query object
 	 * @return mixed
@@ -31,7 +30,7 @@ class BASE_CLASS_NAME_Query {
 
 		// If on the standard BASE_CLASS_NAME post_type archive page.
 		// @todo Consider another token for above comment.
-		if ( $query->is_post_type_archive( BASE_CLASS_NAME_Post_Types::POST_TYPE ) ) {
+		if ( $query->is_post_type_archive( BASE_CLASS_NAME_Post_Types::getPostTypes() ) ) {
 
 			$query->set( 'posts_per_page', -1 ); // Display all.
 			$query->set( 'orderby', 'menu_order' ); // Order by menu order.
