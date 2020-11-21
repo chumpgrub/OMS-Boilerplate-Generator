@@ -1,10 +1,10 @@
 
-		if ( ! taxonomy_exists( BASE_CLASS_NAME_Post_Types::TAXONOMY ) ) :
+		if ( ! taxonomy_exists( BASE_CLASS_NAME_Post_Types::CONST ) ) :
 
-			register_taxonomy( BASE_CLASS_NAME_Post_Types::TAXONOMY,
+			register_taxonomy( BASE_CLASS_NAME_Post_Types::CONST,
 
 				// Filter to modify on which post types this taxonomy can appear.
-				apply_filters( 'oms_taxonomy_objects_SLUG', [ BASE_CLASS_NAME_Post_Types::POST_TYPE ] ),
+				apply_filters( 'oms_taxonomy_objects_SLUG', self::getPostTypes() ),
 
 				// Filter to modify taxonomy.
 				apply_filters( 'oms_taxonomy_args_SLUG', [

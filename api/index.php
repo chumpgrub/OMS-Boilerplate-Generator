@@ -1,8 +1,10 @@
 <?php
 
 header('Access-Control-Allow-Origin: *');
-header("Access-Control-Allow-Methods: GET, POST");
-header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, X-Requested-With");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Disposition, Content-Type, Content-Length, Accept-Encoding");
+//header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, X-Requested-With");
+header('Content-type: application/json');
 
 $data = '{
   "pluginName": "OMS Events",
@@ -39,12 +41,12 @@ $data = '{
   "errors": {}
 }';
 
-$boilerplate = new OMS_Boilerplate($data);
-$boilerplate->getPluginCode();
-echo '<pre>' . print_r($boilerplate, true) . '</pre>';
-//echo '<pre>' . print_r($boilerplate->getConstants(), true) . '</pre>';
-//(new OMS_Boilerplate($data))->getPluginCode();
+$data = json_decode(file_get_contents('php://input'),TRUE);
 
+if (!empty($data)) {
+    $boilerplate = new OMS_Boilerplate($data);
+    $boilerplate->getPluginCode();
+}
 ?>
 
 <?php class OMS_Boilerplate
@@ -57,15 +59,15 @@ echo '<pre>' . print_r($boilerplate, true) . '</pre>';
         'FUNCTION_PREFIX',
     ];
 
-    const SEARCH_INCLUDES = [
-        'INCLUDE_FUNCTIONS',
-        'INCLUDE_TEMPLATE',
-        'INCLUDE_QUERY',
-        'INCLUDE_POST_TYPE',
-    ];
+//    const SEARCH_INCLUDES = [
+//        'INCLUDE_FUNCTIONS',
+//        'INCLUDE_TEMPLATE',
+//        'INCLUDE_QUERY',
+//        'INCLUDE_POST_TYPE',
+//    ];
 
-    protected $sourceDir;
-    protected $destinationDir;
+//    protected $sourceDir;
+//    protected $destinationDir;
     protected $data;
 
     public $hasPostTypes = false;
@@ -77,12 +79,6 @@ echo '<pre>' . print_r($boilerplate, true) . '</pre>';
 
     public function __construct($data = false)
     {
-
-        include 'class-test.php';
-        echo '<pre>' . print_r(MyClass::getConstants(), true) . '</pre>';
-        echo '<pre>' . print_r(MyClass::getPostTypes(), true) . '</pre>';
-        echo '<pre>' . print_r(MyClass::getTaxonomies(), true) . '</pre>';
-//        die();
 
         define('SOURCE_DIR', dirname(__FILE__) . '/source-templates');
         define('FUNCTIONS', [
@@ -100,16 +96,13 @@ echo '<pre>' . print_r($boilerplate, true) . '</pre>';
         define('POST_TYPE', [
             'start' => '/* POST_TYPE_START */',
             'end' => '/* POST_TYPE_END */',
-//            'registration' => '/* POST_TYPE_REGISTRATION */',
         ]);
         define('TAXONOMY', [
             'start' => '/* TAXONOMY_START */',
             'end' => '/* TAXONOMY_END */',
-//            'registration' => '/* TAXONOMY_REGISTRATION */',
         ]);
 
-//        $this->data = json_decode(file_get_contents('php://input', true));
-        $this->data = json_decode($data, true);
+        $this->data = $data;
         $this->setProperties();
         $this->setDestinationDirectory();
         // Set params.
@@ -120,11 +113,6 @@ echo '<pre>' . print_r($boilerplate, true) . '</pre>';
         // Force download.
         // Empty plugin dir.
         $this->getSourceFiles();
-    }
-
-    public function getConstants()
-    {
-        return (new ReflectionClass($this))->getConstants();
     }
 
     /**
@@ -167,7 +155,6 @@ echo '<pre>' . print_r($boilerplate, true) . '</pre>';
 
             }
         }
-//        echo '<pre>' . print_r($data, true) . '</pre>';
     }
 
     /**
@@ -185,6 +172,9 @@ echo '<pre>' . print_r($boilerplate, true) . '</pre>';
         ];
     }
 
+    /**
+     *
+     */
     private function setDestinationDirectory()
     {
         // Ensure we have a destination directory.
@@ -197,6 +187,9 @@ echo '<pre>' . print_r($boilerplate, true) . '</pre>';
         }
     }
 
+    /**
+     *
+     */
     private function getSourceFiles()
     {
         $this->writeRootFiles();
@@ -204,6 +197,11 @@ echo '<pre>' . print_r($boilerplate, true) . '</pre>';
         $this->writeTemplateFiles();
     }
 
+    /**
+     * @param $sourceFile
+     * @param $file
+     * @param false $dir
+     */
     private function writeFile($sourceFile, $file, $dir = FALSE)
     {
         $destinationDir = $dir ? DESTINATION_DIR . '/' . $dir : DESTINATION_DIR;
@@ -218,6 +216,9 @@ echo '<pre>' . print_r($boilerplate, true) . '</pre>';
         fwrite($handle, $newFile);
     }
 
+    /**
+     * Add root files for plugin.
+     */
     private function writeRootFiles()
     {
         // Get files, but exclude '.', '..', 'templates', and 'includes'.
@@ -310,8 +311,9 @@ echo '<pre>' . print_r($boilerplate, true) . '</pre>';
         }
     }
 
-    private function includeSidebarSupport(){}
-
+    /**
+     * Add include files for plugin.
+     */
     private function writeIncludeFiles()
     {
         // Get files and exclude '.' and '..'.
@@ -390,8 +392,14 @@ echo '<pre>' . print_r($boilerplate, true) . '</pre>';
         }
     }
 
+    /**
+     * Add template files for plugin.
+     */
     private function writeTemplateFiles()
     {
+        // If false, no template files needed.
+        if (!$this->includeTemplate) return;
+
         // Get files and exclude '.' and '..'.
         $files = array_diff(scandir(SOURCE_DIR . '/templates'), ['.', '..']);
 
@@ -415,10 +423,16 @@ echo '<pre>' . print_r($boilerplate, true) . '</pre>';
         }
     }
 
+    /**
+     * Create post type registration code.
+     *
+     * @return false|string
+     */
     private function includePostTypes()
     {
         $return = '';
 
+        // Skip this if no post types are defined.
         if (empty($this->postTypes)) return false;
 
         $search = [];
@@ -436,6 +450,7 @@ echo '<pre>' . print_r($boilerplate, true) . '</pre>';
             $replace[$index][] = 'POST_TYPE_' . str_replace(' ', '_', strtoupper($postType['singular']));
         }
 
+        // Create post type registration code for each post type.
         foreach ($search as $index => $s) {
             $sourceFile = file_get_contents('./partials/post-type/register-post-type.txt');
             $return .= str_replace($s, $replace[$index], $sourceFile);
@@ -444,16 +459,20 @@ echo '<pre>' . print_r($boilerplate, true) . '</pre>';
         return $return;
     }
 
+    /**
+     * Create post type registration code.
+     *
+     * @return false|string
+     */
     private function includeTaxonomies()
     {
         $return = '';
 
+        // Skip this if no taxonomies are defined.
         if (empty($this->taxonomies)) return false;
 
         $search = [];
         $replace = [];
-
-        echo '<pre>' . print_r($this->taxonomies, true) . '</pre>';
 
         // Set up $search and $replace arrays.
         foreach ($this->taxonomies as $index => $taxonomy) {
@@ -467,6 +486,7 @@ echo '<pre>' . print_r($boilerplate, true) . '</pre>';
             $replace[$index][] = 'TAXONOMY_' . str_replace(' ', '_', strtoupper($taxonomy['singular']));
         }
 
+        // Create taxonomy registration code for each taxonomy.
         foreach ($search as $index => $s) {
             $sourceFile = file_get_contents('./partials/post-type/register-taxonomy.txt');
             $return .= str_replace($s, $replace[$index], $sourceFile);
@@ -513,25 +533,25 @@ echo '<pre>' . print_r($boilerplate, true) . '</pre>';
         return $return;
     }
 
-    private function queryPostTypeReplacements()
-    {
-        $return = '';
-
-        if (empty($this->postTypes)) return false;
-
-        if (count($this->postTypes) > 1) {
-            $return = '[ ';
-            foreach ($this->postTypes as $postType) {
-                $postTypeConst = str_replace(' ', '_', strtoupper($postType['singular']));
-                $return .= sprintf('%s_Post_Type::POST_TYPE_%s, ', $this->baseClassName, $postTypeConst);
-            }
-            $return .= ']';
-        } else {
-            $postTypeConst = str_replace(' ', '_', strtoupper($this->postTypes[0]['singular']));
-            $return .= sprintf('%s_Post_Type::POST_TYPE_%s ', $this->baseClassName, $postTypeConst);
-        }
-        return $return;
-    }
+//    private function queryPostTypeReplacements()
+//    {
+//        $return = '';
+//
+//        if (empty($this->postTypes)) return false;
+//
+//        if (count($this->postTypes) > 1) {
+//            $return = '[ ';
+//            foreach ($this->postTypes as $postType) {
+//                $postTypeConst = str_replace(' ', '_', strtoupper($postType['singular']));
+//                $return .= sprintf('%s_Post_Type::POST_TYPE_%s, ', $this->baseClassName, $postTypeConst);
+//            }
+//            $return .= ']';
+//        } else {
+//            $postTypeConst = str_replace(' ', '_', strtoupper($this->postTypes[0]['singular']));
+//            $return .= sprintf('%s_Post_Type::POST_TYPE_%s ', $this->baseClassName, $postTypeConst);
+//        }
+//        return $return;
+//    }
 
     /**
      * Utility for replacing string content.

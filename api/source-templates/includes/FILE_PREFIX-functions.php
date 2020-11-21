@@ -41,8 +41,6 @@ function FUNCTION_PREFIX_get_template_part( $slug, $name = '' ) {
  * Gets the edit link for PLUGIN_NAME.
  *
  * @param int $record_id ID of particular PLUGIN_NAME.
- * @todo Consider replacing token in dockblock with something more specific
- * once single or multiple post type direction is determined.
  * @return string
  */
 function FUNCTION_PREFIX_get_edit_link( $record_id ) {

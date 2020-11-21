@@ -23,13 +23,12 @@ class BASE_CLASS_NAME_Query {
 	 */
 	public static function pre_get_posts( $query ) {
 
-		// We only want to affect the main query - don't modify search or admin queries.
+		// We only want to affect the main query, skipping search or admin queries.
 		if ( ! $query->is_main_query() || is_search() || is_admin() ) {
 			return $query;
 		}
 
-		// If on the standard BASE_CLASS_NAME post_type archive page.
-		// @todo Consider another token for above comment.
+		// If archive matches post type.
 		if ( $query->is_post_type_archive( BASE_CLASS_NAME_Post_Types::getPostTypes() ) ) {
 
 			$query->set( 'posts_per_page', -1 ); // Display all.

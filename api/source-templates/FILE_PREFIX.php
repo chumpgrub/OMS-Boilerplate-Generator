@@ -69,18 +69,16 @@ class BASE_CLASS_NAME {
 	 * Handle all actions here.
 	 */
 	public function init_hooks() {
-
 	    // Enforce Advanced Custom Fields plugin as dependency.
 		add_action( 'admin_init', [ $this, 'acf_is_active' ] );
         /* POST_TYPE_START */
 		// Create Advanced Custom Fields options sub-page.
 		add_action( 'init', [ $this, 'add_options_sub_page' ] );
-
 		// Add WooSidebars support for custom post types.
         add_action( 'init', [ $this, 'add_woosidebars_support' ] );
-        /* POST_TYPE_END */
+        /* POST_TYPE_END */// Orbit page title filter.
 		add_filter( 'orbitmedia_page_title', [ $this, 'page_title' ] );
-
+        // Orbit header image record_id filter.
 		add_filter( 'orbitmedia_header_image_record_id', [ $this, 'header_image_record_id' ] );
 	}
 
