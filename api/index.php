@@ -6,41 +6,7 @@ header("Access-Control-Allow-Headers: Content-Disposition, Content-Type, Content
 //header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, X-Requested-With");
 header('Content-type: application/json');
 
-$data = '{
-  "pluginName": "OMS Events",
-  "baseClassName": "OMS_Events",
-  "filePrefix": "oms-events",
-  "functionPrefix": "oms_events",
-  "postTypeNames": "Events, Webinars",
-  "postTypes": [
-    {
-      "singular": "Event",
-      "plural": "Events"
-    },
-    {
-      "singular": "Webinar",
-      "plural": "Webinars"
-    }
-  ],
-  "taxonomyNames": "Category, Location",
-  "taxonomies": [
-    {
-      "singular": "Category",
-      "plural": "Categories"
-    },
-    {
-      "singular": "Location",
-      "plural": "Locations"
-    }
-  ],
-  "includeFiles": {
-    "functions": true,
-    "template": true,
-    "query": true
-  },
-  "errors": {}
-}';
-
+// Plugin data from frontend.
 $data = json_decode(file_get_contents('php://input'),TRUE);
 
 if (!empty($data)) {
@@ -59,15 +25,6 @@ if (!empty($data)) {
         'FUNCTION_PREFIX',
     ];
 
-//    const SEARCH_INCLUDES = [
-//        'INCLUDE_FUNCTIONS',
-//        'INCLUDE_TEMPLATE',
-//        'INCLUDE_QUERY',
-//        'INCLUDE_POST_TYPE',
-//    ];
-
-//    protected $sourceDir;
-//    protected $destinationDir;
     protected $data;
 
     public $hasPostTypes = false;
@@ -532,26 +489,6 @@ if (!empty($data)) {
 
         return $return;
     }
-
-//    private function queryPostTypeReplacements()
-//    {
-//        $return = '';
-//
-//        if (empty($this->postTypes)) return false;
-//
-//        if (count($this->postTypes) > 1) {
-//            $return = '[ ';
-//            foreach ($this->postTypes as $postType) {
-//                $postTypeConst = str_replace(' ', '_', strtoupper($postType['singular']));
-//                $return .= sprintf('%s_Post_Type::POST_TYPE_%s, ', $this->baseClassName, $postTypeConst);
-//            }
-//            $return .= ']';
-//        } else {
-//            $postTypeConst = str_replace(' ', '_', strtoupper($this->postTypes[0]['singular']));
-//            $return .= sprintf('%s_Post_Type::POST_TYPE_%s ', $this->baseClassName, $postTypeConst);
-//        }
-//        return $return;
-//    }
 
     /**
      * Utility for replacing string content.

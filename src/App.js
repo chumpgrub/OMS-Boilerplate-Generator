@@ -15,7 +15,6 @@ import {
 	Typography
 } from '@material-ui/core';
 import axios from 'axios';
-import qs from 'querystring';
 
 import {PhpClass, FileName, FunctionName} from './components/CodeSamples';
 import {PostTypeLabels, TaxonomyLabels} from './components/PostTypeLabels';
@@ -120,16 +119,8 @@ class App extends Component {
 		this.setState({includeFiles: Object.assign({}, {...includeFiles})})
 	}
 	
-	/**
-	 * @see: https://stackoverflow.com/questions/22783108/convert-js-object-to-form-data
-	 * maybe remove qs package
-	 * maybe remove 'build' and 'json' methods
-	 */
-	
 	handleSubmit = (e) => {
 		e.preventDefault()
-		console.log(this.state)
-		console.log(qs.stringify(this.state, {arrayFormat:'brackets'}))
 		axios({
 			method: 'post',
 			url: `${API_PATH}`,
@@ -141,34 +132,10 @@ class App extends Component {
 			})
 			.then(function (body) {
 				console.log(body.data)
-				window.mwf = body
-				// console.log(JSON.parse(body.data))
-				// alert('what?')
 			})
 			.catch(function (error) {
 				console.log(error)
 			})
-		// console.log(this.state)
-	}
-	
-	buildFormData = (formData, data, parentKey) => {
-		if (data && typeof data === 'object' && !(data instanceof Date) && !(data instanceof File)) {
-			Object.keys(data).forEach(key => {
-				this.buildFormData(formData, data[key], parentKey ? `${parentKey}[${key}]` : key);
-			});
-		} else {
-			const value = data == null ? '' : data;
-			
-			formData.append(parentKey, value);
-		}
-	}
-	
-	jsonToFormData = (data) => {
-		const formData = new FormData();
-		
-		this.buildFormData(formData, data);
-		
-		return formData;
 	}
 	
 	render() {
