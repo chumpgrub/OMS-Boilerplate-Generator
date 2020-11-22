@@ -10,8 +10,10 @@ header('Content-type: application/json');
 $data = json_decode(file_get_contents('php://input'),TRUE);
 
 if (!empty($data)) {
+
     $boilerplate = new OMS_Boilerplate($data);
-    $boilerplate->getPluginCode();
+    $boilerplate->makePlugin();
+
 }
 ?>
 
@@ -62,14 +64,6 @@ if (!empty($data)) {
         $this->data = $data;
         $this->setProperties();
         $this->setDestinationDirectory();
-        // Set params.
-        // Set plugin dir.
-        // Get contents for each file.
-        // String replace tokens.
-        // Write files with new file names to plugin dir.
-        // Force download.
-        // Empty plugin dir.
-        $this->getSourceFiles();
     }
 
     /**
@@ -107,16 +101,13 @@ if (!empty($data)) {
                 }
 
             } else {
-
                 $this->{$property} = filter_var($value, FILTER_SANITIZE_STRING);
-
             }
         }
     }
 
     /**
      * Properties containing values that will replace the tokens.
-     *
      * @return array
      */
     public function getReplacementProperties()
@@ -130,7 +121,7 @@ if (!empty($data)) {
     }
 
     /**
-     *
+     * Create plugin directory.
      */
     private function setDestinationDirectory()
     {
@@ -142,16 +133,6 @@ if (!empty($data)) {
         if (!is_dir(DESTINATION_DIR)) {
             mkdir(DESTINATION_DIR);
         }
-    }
-
-    /**
-     *
-     */
-    private function getSourceFiles()
-    {
-        $this->writeRootFiles();
-        $this->writeIncludeFiles();
-        $this->writeTemplateFiles();
     }
 
     /**
@@ -534,9 +515,11 @@ if (!empty($data)) {
         return $result;
     }
 
-    public function getPluginCode()
+    public function makePlugin()
     {
-//        echo json_encode($this->data);
+        $this->writeRootFiles();
+        $this->writeIncludeFiles();
+        $this->writeTemplateFiles();
     }
 
     /**
