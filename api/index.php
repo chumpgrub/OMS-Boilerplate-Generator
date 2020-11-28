@@ -1,19 +1,18 @@
 <?php
 
+require_once __DIR__ . '/vendor/autoload.php';
+
 header('Access-Control-Allow-Origin: *');
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Disposition, Content-Type, Content-Length, Accept-Encoding");
-//header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, X-Requested-With");
 header('Content-type: application/json');
 
 // Plugin data from frontend.
 $data = json_decode(file_get_contents('php://input'),TRUE);
 
 if (!empty($data)) {
-
     $boilerplate = new OMS_Boilerplate($data);
     $boilerplate->makePlugin();
-
 }
 ?>
 
@@ -520,6 +519,24 @@ if (!empty($data)) {
         $this->writeRootFiles();
         $this->writeIncludeFiles();
         $this->writeTemplateFiles();
+
+        $hashedPrefix = md5($this->filePrefix . strtotime());
+
+        $filename = sprintf('oms-plugin-%s.zip', $hashedPrefix);
+
+        $zipper = new \Chumper\Zipper\Zipper;
+
+        $zipper->make(sprintf('./tmp/%s', $filename))
+            ->folder($this->filePrefix)
+            ->add(DESTINATION_DIR)->close();
+
+        $tmpFile = sprintf('./tmp/%s', $filename);
+
+        if (file_exists($tmpFile)) {
+            rmdir(DESTINATION_DIR . '/' . $this->filePrefix);
+            printf('http://localhost:8888/api/tmp/%s', $filename);
+            die();
+        }
     }
 
     /**
