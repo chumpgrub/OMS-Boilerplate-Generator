@@ -8,7 +8,7 @@ header("Access-Control-Allow-Headers: Content-Disposition, Content-Type, Content
 header('Content-type: application/json');
 
 // Plugin data from frontend.
-$data = json_decode(file_get_contents('php://input'),TRUE);
+$data = json_decode(file_get_contents('php://input'), TRUE);
 
 if (!empty($data)) {
     $boilerplate = new OMS_Boilerplate($data);
@@ -201,19 +201,19 @@ if (!empty($data)) {
                     if ($this->hasPostTypes) {
 
                         // ACF Sub-Page Partial.
-                        $acf_source = file_get_contents( dirname(__FILE__) .'/partials/acf-options-sub-page.txt' );
+                        $acf_source = file_get_contents(dirname(__FILE__) . '/partials/acf-options-sub-page.txt');
                         // Page Title Partial.
-                        $page_title_source = file_get_contents(dirname(__FILE__).'/partials/page-title.txt');
+                        $page_title_source = file_get_contents(dirname(__FILE__) . '/partials/page-title.txt');
                         // Header Image Partial.
-                        $header_image_source = file_get_contents(dirname(__FILE__).'/partials/header-image.txt');
+                        $header_image_source = file_get_contents(dirname(__FILE__) . '/partials/header-image.txt');
                         $acf_options_sub_page = '';
                         $page_title = '';
                         $header_image = '';
 
-                        foreach($this->postTypes as $postType) {
+                        foreach ($this->postTypes as $postType) {
 
                             // Search values.
-                            $search = ['PLURAL','SINGULAR','POST_TYPE','SLUG'];
+                            $search = ['PLURAL', 'SINGULAR', 'POST_TYPE', 'SLUG'];
 
                             // Replacement values for partials.
                             $replacements = [
@@ -520,7 +520,7 @@ if (!empty($data)) {
         $this->writeIncludeFiles();
         $this->writeTemplateFiles();
 
-        $hashedPrefix = md5($this->filePrefix . strtotime());
+        $hashedPrefix = md5($this->filePrefix . strtotime('now'));
 
         $filename = sprintf('oms-plugin-%s.zip', $hashedPrefix);
 
@@ -533,7 +533,7 @@ if (!empty($data)) {
         $tmpFile = sprintf('./tmp/%s', $filename);
 
         if (file_exists($tmpFile)) {
-            rmdir(DESTINATION_DIR . '/' . $this->filePrefix);
+            self::delTree(DESTINATION_DIR);
             printf('http://localhost:8888/api/tmp/%s', $filename);
             die();
         }
@@ -557,6 +557,15 @@ if (!empty($data)) {
     public function stringToConst($string)
     {
         return preg_replace('/\W+/', '_', strtoupper($string));
+    }
+
+    public static function delTree($dir)
+    {
+        $files = array_diff(scandir($dir), array('.', '..'));
+        foreach ($files as $file) {
+            (is_dir("$dir/$file")) ? self::delTree("$dir/$file") : unlink("$dir/$file");
+        }
+        return rmdir($dir);
     }
 
 }
