@@ -28,7 +28,7 @@ const PostTypeLabels = ({index, singular, plural, fileName}) => (
 		<h5 style={styles.h5}>Post Type: {plural}</h5>
 		<code><pre style={styles.code}>
 			$labels = [<br/>
-			&nbsp;&nbsp;'name'          => _x( '<b>{plural}</b>, 'Post Type General Name', '<b>{fileName}</b>' ),<br/>
+			&nbsp;&nbsp;'name'          => _x( '<b>{plural}</b>', 'Post Type General Name', '<b>{fileName}</b>' ),<br/>
 			&nbsp;&nbsp;'singular_name' => _x( '<b>{singular}</b>', 'Post Type Singular Name', '<b>{fileName}</b>' ),<br/>
 			&nbsp;&nbsp;'menu_name'     => __( '<b>{singular}</b>', '<b>{fileName}</b>' ),<br/>
 			&nbsp;&nbsp;&nbsp;&nbsp;...<br/>
