@@ -15,11 +15,13 @@ import {
 	Typography
 } from '@material-ui/core';
 import axios from 'axios';
+import ReactGA from "react-ga";
 
 import {PhpClass, FileName, FunctionName} from './components/CodeSamples';
 import {PostTypeLabels, TaxonomyLabels} from './components/PostTypeLabels';
 
-const API_PATH = `http://localhost:8888/api/index.php`
+// const API_PATH = `http://localhost:8888/api/index.php`
+// const API_PATH = `https://boilerbackend.markfurrow.com/api/index.php`
 
 const getClassName = (name) => {
 	return name.replace(/[\W_]+/g, '_')
@@ -51,12 +53,17 @@ class App extends Component {
 				query: true,
 				template: true
 			},
+			otherSettings: {
+				acf: true,
+				wooSidebars: true
+			},
 			download: null,
 			errors: {}
 		}
 	}
 	
 	componentDidMount() {
+		ReactGA.initialize('UA-185027299-1')
 		let {download} = this.state
 		if (download) {
 			console.log('download here')
@@ -129,11 +136,20 @@ class App extends Component {
 		this.setState({includeFiles: Object.assign({}, {...includeFiles})})
 	}
 	
+	handleOtherSettingsChange = (event) => {
+		// Get files prop.
+		const {otherSettings} = this.state
+		// Update files object.
+		otherSettings[event.target.name] = event.target.checked
+		// Create new object with update files and replace to avoid mutation.
+		this.setState({otherSettings: Object.assign({}, {...otherSettings})})
+	}
+	
 	handleSubmit = (e) => {
 		e.preventDefault()
 		axios({
 			method: 'post',
-			url: `${API_PATH}`,
+			url: `${process.env.REACT_APP_API_PATH}/index.php`,
 			proxy: {
 				host: 'localhost',
 				port: 8888,
@@ -141,12 +157,13 @@ class App extends Component {
 			data: this.state
 			})
 			.then((body) => {
-				
-				console.log(body, body.data)
-				this.setState({'download': body.data})
-				console.log(this.state)
-				// new Blob([body.data], { type: 'application/zip' })
-				
+				// Track event in GA.
+				ReactGA.event({
+					category: 'Plugin',
+					action: 'submit',
+					label: 'New Plugin Generated'
+				});
+				this.setState({'download': `${process.env.REACT_APP_API_PATH}/tmp/${body.data}`})
 			})
 			.catch((error) => {
 				console.log(error)
@@ -155,9 +172,11 @@ class App extends Component {
 	
 	render() {
 		// Get properties from state.
-		const {pluginName, baseClassName, filePrefix, functionPrefix, postTypeNames, postTypes, taxonomyNames, taxonomies, includeFiles, download} = this.state
+		const {pluginName, baseClassName, filePrefix, functionPrefix, postTypeNames, postTypes, taxonomyNames, taxonomies, includeFiles, otherSettings, download} = this.state
 		// Get properties from files variable.
 		const {functions, query, template} = includeFiles
+		// Get other properties.
+		const {acf, wooSidebars} = otherSettings
 		// Example code styles.
 		const styles = {
 			h3: {
@@ -216,7 +235,7 @@ class App extends Component {
 				{!download &&
 					<Fragment>
 						<Grid container spacing={4} style={styles.grouping}>
-							<Grid item xs={5}>
+							<Grid item xs={12} md={8} lg={5}>
 								<TextField id="plugin-name"
 								           label="Plugin Name"
 								           required
@@ -237,7 +256,7 @@ class App extends Component {
 							<Grid item xs={12}>
 								<Typography variant="h5">Class/File/Function Names</Typography>
 							</Grid>
-							<Grid item xs={5}>
+							<Grid item xs={12} sm={5}>
 								<TextField id="base-class-name"
 								           label="Base Class Name"
 								           disabled={baseClassName ? false : true}
@@ -269,7 +288,7 @@ class App extends Component {
 								           helperText={`Global functions will be prefixed with this value to prevent code collisions.`}
 								/>
 							</Grid>
-							<Grid item xs={7}>
+							<Grid item xs={12} sm={7}>
 								{baseClassName && <PhpClass classBase={baseClassName}/>}
 								{filePrefix && <FileName filePrefix={filePrefix}/>}
 								{functionPrefix && <FunctionName functionPrefix={functionPrefix}/>}
@@ -284,7 +303,7 @@ class App extends Component {
 							<Grid item xs={12}>
 								<Typography variant="h5">Post Types</Typography>
 							</Grid>
-							<Grid item xs={5}>
+							<Grid item xs={12} sm={5}>
 								<TextField id="post-types-names"
 								           label="Post Types"
 								           style={{width: '100%', marginBottom: 30}}
@@ -292,9 +311,10 @@ class App extends Component {
 								           value={postTypeNames}
 								           onChange={(e) => this.handleChange('postTypeNames', e)}
 								           onBlur={this.handlePostTypeBlur}
+								           helperText={`Add multiple post types by separating their names with a comma.`}
 								/>
 							</Grid>
-							<Grid item xs={7}>
+							<Grid item xs={12} sm={7}>
 								{
 									postTypes &&
 									postTypes.map((postType, index) => {
@@ -315,7 +335,7 @@ class App extends Component {
 							<Grid item xs={12}>
 								<Typography variant="h5">Taxonomies</Typography>
 							</Grid>
-							<Grid item xs={5}>
+							<Grid item xs={12} sm={5}>
 								<TextField id="taxonomies"
 								           label="Taxonomies"
 								           variant="outlined"
@@ -323,9 +343,10 @@ class App extends Component {
 								           value={taxonomyNames}
 								           onChange={(e) => this.handleChange('taxonomyNames', e)}
 								           onBlur={this.handleTaxonomiesBlur}
+								           helperText={`Add multiple taxonomies by separating their names with a comma.`}
 								/>
 							</Grid>
-							<Grid item xs={7}>
+							<Grid item xs={12} sm={7}>
 								{
 									taxonomies &&
 									taxonomies.map((taxonomy, index) => {
@@ -346,7 +367,7 @@ class App extends Component {
 							<Grid item xs={12}>
 								<Typography variant="h5">Include Files</Typography>
 							</Grid>
-							<Grid item xs={5}>
+							<Grid item xs={12} sm={5}>
 								<FormControl component="fieldset">
 									<FormLabel component="legend">Choose files for you project</FormLabel>
 									<FormGroup>
@@ -379,7 +400,7 @@ class App extends Component {
 								</FormControl>
 							
 							</Grid>
-							<Grid item xs={7}>
+							<Grid item xs={12} sm={7}>
 								{pluginName &&
 								<Fragment>
 									{functions && (
@@ -410,6 +431,38 @@ class App extends Component {
 									}
 								</Fragment>
 								}
+							</Grid>
+						</Grid>
+						
+						<Box>
+							<hr style={styles.hr}/>
+						</Box>
+						
+						<Grid container spacing={4} style={styles.grouping}>
+							<Grid item xs={12}>
+								<Typography variant="h5">Other Settings</Typography>
+							</Grid>
+							<Grid item xs={12}>
+								<FormControl component="fieldset">
+									<FormGroup>
+										<FormControlLabel
+											control={
+												<Checkbox name="acf"
+												          checked={acf}
+												          onChange={this.handleOtherSettingsChange}
+												/>
+											}
+											label={`Requires Advanced Custom Fields`}/>
+										<FormControlLabel
+											control={
+												<Checkbox name="wooSidebars"
+												          checked={wooSidebars}
+												          onChange={this.handleOtherSettingsChange}
+												/>
+											}
+											label={`WooSidebars Support`}/>
+									</FormGroup>
+								</FormControl>
 							</Grid>
 						</Grid>
 						

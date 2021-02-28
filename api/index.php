@@ -11,8 +11,7 @@ header('Content-type: application/json');
 $data = json_decode(file_get_contents('php://input'), TRUE);
 
 if (!empty($data)) {
-    $boilerplate = new OMS_Boilerplate($data);
-    $boilerplate->makePlugin();
+    $boilerplate = (new OMS_Boilerplate($data))->makePlugin();
 }
 ?>
 
@@ -35,10 +34,21 @@ if (!empty($data)) {
     public $includeQuery = true;
     public $includeTemplate = true;
 
+    public $includeACF = true;
+    public $includeWooSidebars = true;
+
     public function __construct($data = false)
     {
 
         define('SOURCE_DIR', dirname(__FILE__) . '/source-templates');
+        define('ACF', [
+            'start' => '/* ACF_START */',
+            'end' => '/* ACF_END */'
+        ]);
+        define('SIDEBARS', [
+            'start' => '/* SIDEBARS_START */',
+            'end' => '/* SIDEBARS_END */'
+        ]);
         define('FUNCTIONS', [
             'start' => '/* FUNCTIONS_START */',
             'end' => '/* FUNCTIONS_END */'
@@ -93,6 +103,11 @@ if (!empty($data)) {
                         $this->includeFunctions = ((bool)$value['functions']) ? true : false;
                         $this->includeQuery = ($value['query']) ? true : false;
                         $this->includeTemplate = ($value['template']) ? true : false;
+                        break;
+                    case 'otherSettings':
+                        $this->{$property} = $value;
+                        $this->includeACF = ((bool)$value['acf']) ? true : false;
+                        $this->includeWooSidebars = ((bool)$value['wooSidebars']) ? true : false;
                         break;
                     default:
                         $this->{$property} = $value;
@@ -191,6 +206,20 @@ if (!empty($data)) {
                     $sourceFile = str_replace(TEMPLATE, '', $sourceFile);
                 }
 
+                // Remove ACF requirement check.
+                if (!$this->includeACF) {
+                    $sourceFile = $this->replaceBetween($sourceFile, ACF['start'], ACF['end'], '', true, 0, true);
+                } else {
+                    $sourceFile = str_replace(ACF, '', $sourceFile);
+                }
+
+                // Remove WooSidebars requirement check.
+                if (!$this->includeWooSidebars) {
+                    $sourceFile = $this->replaceBetween($sourceFile, SIDEBARS['start'], SIDEBARS['end'], '', true, 0, true);
+                } else {
+                    $sourceFile = str_replace(SIDEBARS, '', $sourceFile);
+                }
+
                 // Handle post types file include.
                 // If no post types or taxonomies, remove placeholder and content.
                 if (!$this->hasPostTypes && !$this->hasTaxonomies) {
@@ -232,7 +261,7 @@ if (!empty($data)) {
                         }
 
                         // Update ACF Options Sub-Page section.
-                        $sourceFile = str_replace('/* ACF_OPTIONS_SUB_PAGE_PARTIAL */', $acf_options_sub_page, $sourceFile);
+//                        $sourceFile = str_replace('/* ACF_OPTIONS_SUB_PAGE_PARTIAL */', $acf_options_sub_page, $sourceFile);
 
                         // Update Page Title section.
                         $sourceFile = str_replace('/* PAGE_TITLE_PARTIAL */', $page_title, $sourceFile);
@@ -462,8 +491,10 @@ if (!empty($data)) {
         if (empty($this->taxonomies)) return false;
 
         foreach ($this->taxonomies as $taxonomy) {
+            // Prepend with file prefix value if taxonomy is "category".
+            $taxonomyPrefix = (strtolower($taxonomy['singular']) === 'category') ? $this->filePrefix . '_' : '';
             $constKey = sprintf('TAXONOMY_%s', $this->stringToConst($taxonomy['singular']));
-            $constValue = strtolower(str_replace(' ', '_', $taxonomy['singular']));
+            $constValue = $taxonomyPrefix . strtolower(str_replace(' ', '_', $taxonomy['singular']));
             $return .= "\t// Taxonomy {$taxonomy['singular']}.\n\tconst {$constKey} = '{$constValue}';\n";
         }
 
@@ -534,7 +565,7 @@ if (!empty($data)) {
 
         if (file_exists($tmpFile)) {
             self::delTree(DESTINATION_DIR);
-            printf('http://localhost:8888/api/tmp/%s', $filename);
+            echo $filename;
             die();
         }
     }

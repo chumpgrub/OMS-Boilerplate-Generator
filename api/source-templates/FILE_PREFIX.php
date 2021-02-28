@@ -69,13 +69,12 @@ class BASE_CLASS_NAME {
 	 * Handle all actions here.
 	 */
 	public function init_hooks() {
-	    // Enforce Advanced Custom Fields plugin as dependency.
-		add_action( 'admin_init', [ $this, 'acf_is_active' ] );
-        /* POST_TYPE_START */
-		// Create Advanced Custom Fields options sub-page.
-		add_action( 'init', [ $this, 'add_options_sub_page' ] );
+        /* ACF_START */// Enforce Advanced Custom Fields plugin as dependency.
+		add_action( 'admin_init', [ $this, 'acf_is_active' ] );/* ACF_END */
+        /* POST_TYPE_START */// Create Advanced Custom Fields options sub-page.
+		add_action( 'init', [ $this, 'add_options_sub_page' ] );/* SIDEBARS_START */
 		// Add WooSidebars support for custom post types.
-        add_action( 'init', [ $this, 'add_woosidebars_support' ] );
+        add_action( 'init', [ $this, 'add_woosidebars_support' ] );/* SIDEBARS_END */
         /* POST_TYPE_END */// Orbit page title filter.
 		add_filter( 'orbitmedia_page_title', [ $this, 'page_title' ] );
         // Orbit header image record_id filter.
@@ -91,7 +90,7 @@ class BASE_CLASS_NAME {
 		return untrailingslashit( plugin_dir_path( __FILE__ ) );
 	}
 
-	/**
+    /* ACF_START *//**
 	 * Check for ACF Pro before activating this plugin
 	 */
 	public function acf_is_active() {
@@ -104,18 +103,26 @@ class BASE_CLASS_NAME {
                 unset( $_GET['activate'] );
             }
         }
-	}
-/* POST_TYPE_START */
-    /**
+	}/* ACF_END */
+
+    /* POST_TYPE_START *//**
 	 * Add ACF Options Sub Page to post type menus.
 	 */
 	public function add_options_sub_page() {
-		if ( function_exists( 'acf_add_options_page' ) ) {
-/* ACF_OPTIONS_SUB_PAGE_PARTIAL */
+		if ( function_exists( 'acf_add_options_page' ) && BASE_CLASS_NAME_Post_Types::getPostTypes() ) {
+            foreach ( BASE_CLASS_NAME_Post_Types::getPostTypes() as $post_type ) {
+                $post_type_obj = get_post_type_object( $post_type );
+                $post_type_name = ( ! is_wp_error( $post_type_obj ) ) ? sprintf( '%s ', $post_type_obj->labels->name ) : '';
+                acf_add_options_sub_page( array(
+                    'page_title' => __( $post_type_name . ' Settings', 'FILE_PREFIX' ),
+                    'parent'     => 'edit.php?post_type=' . $post_type,
+                    'post_id'    => $post_type,
+                ) );
+            }
         }
 	}
 
-    /**
+    /* SIDEBARS_START *//**
      * Add WooSidebars support for custom post types.
      */
     public function add_woosidebars_support() {
@@ -124,14 +131,14 @@ class BASE_CLASS_NAME {
                 add_post_type_support( $post_type, 'woosidebars' );
             }
         }
-    }
-    /* POST_TYPE_END */
-	/**
+    }/* SIDEBARS_END */
+
+    /* POST_TYPE_END *//* ACF_START *//**
 	 * Error notice if ACF Pro not installed.
 	 */
 	public function plugin_notice() {
         echo '<div class="error"><p>PLUGIN_NAME requires Advanced Custom Fields Pro to be installed and active.</p></div>';
-	}
+	}/* ACF_END */
 
 	/**
 	 * Returns Title value entered on CPT > Settings.
