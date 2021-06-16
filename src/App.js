@@ -15,7 +15,6 @@ import {
 	Typography
 } from '@material-ui/core';
 import axios from 'axios';
-import ReactGA from "react-ga";
 
 import {PhpClass, FileName, FunctionName} from './components/CodeSamples';
 import {PostTypeLabels, TaxonomyLabels} from './components/PostTypeLabels';
@@ -63,7 +62,6 @@ class App extends Component {
 	}
 	
 	componentDidMount() {
-		ReactGA.initialize('UA-185027299-1')
 		let {download} = this.state
 		if (download) {
 			console.log('download here')
@@ -157,12 +155,6 @@ class App extends Component {
 			data: this.state
 			})
 			.then((body) => {
-				// Track event in GA.
-				ReactGA.event({
-					category: 'Plugin',
-					action: 'submit',
-					label: 'New Plugin Generated'
-				});
 				this.setState({'download': `${process.env.REACT_APP_API_PATH}/tmp/${body.data}`})
 			})
 			.catch((error) => {

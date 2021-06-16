@@ -2,10 +2,11 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-header('Access-Control-Allow-Origin: *');
-header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+// Change origin from * to application url.
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Disposition, Content-Type, Content-Length, Accept-Encoding");
-header('Content-type: application/json');
+header("Content-type: application/json");
 
 // Plugin data from frontend.
 $data = json_decode(file_get_contents('php://input'), TRUE);
