@@ -2,6 +2,8 @@
 
 # built plugin files
 /api/destination-templates/*
+/api/tmp/*
+/api/vendor/*
 
 # dependencies
 /node_modules
