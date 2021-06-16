@@ -1,7 +1,5 @@
 # OMS Boilerplate Plugin Generator
 
-
-
 ## Updates
 
 ### 07/16/21
