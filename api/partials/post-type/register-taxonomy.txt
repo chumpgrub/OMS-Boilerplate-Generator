@@ -27,6 +27,7 @@
 					'query_var'         => TRUE,
 					'public'            => TRUE,
 					'show_admin_column' => TRUE,
+					'show_in_rest'      => TRUE,
 				] )
 			);
 
