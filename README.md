@@ -2,6 +2,11 @@
 
 ## Updates
 
+### 12/13/22
+- Updates templates to remove oms specific hooks.
+- Updates functions for PSR standards, e.g., function return type declarations, parameter types.
+- 
+
 ### 07/16/21
 - Removed Google Analytics
 - Cleaned cruft

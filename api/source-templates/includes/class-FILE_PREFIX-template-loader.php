@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class BASE_CLASS_NAME_Template_Loader {
 
-	public static function init() {
+	public static function init() : void {
 		add_filter( 'template_include', [__CLASS__, 'load_template'] );
 	}
 
@@ -21,13 +21,13 @@ class BASE_CLASS_NAME_Template_Loader {
 	 * @param  string $template Path to template
 	 * @return string           Path to template
 	 */
-	public static function load_template( $template ) {
+	public static function load_template( string $template ) : string {
 
 		$file = '';
 
 		if ( is_singular( BASE_CLASS_NAME_Post_Types::getPostTypes() ) ) {
             $file = 'single-FILE_PREFIX.php';
-        } elseif ( is_post_type_archive( BASE_CLASS_NAME_Post_Types::getPostTypes() ) && ! is_search() ) {
+        } elseif ( is_post_type_archive( BASE_CLASS_NAME_Post_Types::getPostTypes() ) ) {
             $file = 'archive-FILE_PREFIX.php';
         }
 

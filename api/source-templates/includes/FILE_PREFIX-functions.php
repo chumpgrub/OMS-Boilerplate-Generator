@@ -6,16 +6,16 @@
  * @param mixed $slug
  * @param string $name (default: '')
  */
-function FUNCTION_PREFIX_get_template_part( $slug, $name = '' ) {
+function FUNCTION_PREFIX_get_template_part( mixed $slug, string $name = '' ) :void {
 
 	$template = '';
 
-	// Look in yourtheme/FILE_PREFIX/slug-name.php
+	// Look in your_theme/FILE_PREFIX/slug-name.php
 	if ( $name ) {
         $template = locate_template( array( "FILE_PREFIX/{$slug}-{$name}.php" ) );
     }
 
-	// Look in yourthme/FILE_PREFIX/slug.php
+	// Look in your_theme/FILE_PREFIX/slug.php
 	if ( ( ! $template && ! $name ) && file_exists( get_stylesheet_directory() . "/FILE_PREFIX/{$slug}.php" ) ) {
         $template = locate_template( array( "FILE_PREFIX/{$slug}.php" ) );
     }
