@@ -44,6 +44,7 @@
 							'with_front' => FALSE,
 						],
 						'capability_type'     => 'post',
+						'show_in_rest'        => TRUE,
 					]
 				)
 			);
