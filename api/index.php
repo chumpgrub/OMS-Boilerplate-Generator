@@ -36,7 +36,6 @@ if (!empty($data)) {
     public $includeTemplate = true;
 
     public $includeACF = true;
-    public $includeWooSidebars = true;
 
     public function __construct($data = false)
     {
@@ -108,7 +107,6 @@ if (!empty($data)) {
                     case 'otherSettings':
                         $this->{$property} = $value;
                         $this->includeACF = ((bool)$value['acf']) ? true : false;
-                        $this->includeWooSidebars = ((bool)$value['wooSidebars']) ? true : false;
                         break;
                     default:
                         $this->{$property} = $value;
@@ -214,13 +212,6 @@ if (!empty($data)) {
                     $sourceFile = str_replace(ACF, '', $sourceFile);
                 }
 
-                // Remove WooSidebars requirement check.
-                if (!$this->includeWooSidebars) {
-                    $sourceFile = $this->replaceBetween($sourceFile, SIDEBARS['start'], SIDEBARS['end'], '', true, 0, true);
-                } else {
-                    $sourceFile = str_replace(SIDEBARS, '', $sourceFile);
-                }
-
                 // Handle post types file include.
                 // If no post types or taxonomies, remove placeholder and content.
                 if (!$this->hasPostTypes && !$this->hasTaxonomies) {
@@ -232,13 +223,7 @@ if (!empty($data)) {
 
                         // ACF Sub-Page Partial.
                         $acf_source = file_get_contents(dirname(__FILE__) . '/partials/acf-options-sub-page.txt');
-                        // Page Title Partial.
-                        $page_title_source = file_get_contents(dirname(__FILE__) . '/partials/page-title.txt');
-                        // Header Image Partial.
-                        $header_image_source = file_get_contents(dirname(__FILE__) . '/partials/header-image.txt');
                         $acf_options_sub_page = '';
-                        $page_title = '';
-                        $header_image = '';
 
                         foreach ($this->postTypes as $postType) {
 
@@ -255,20 +240,10 @@ if (!empty($data)) {
 
                             // Replace ACF placeholder.
                             $acf_options_sub_page .= str_replace($search, $replacements, $acf_source);
-                            // Replace Page Title placeholder.
-                            $page_title .= str_replace($search, $replacements, $page_title_source);
-                            // Replace Header Image placeholder.
-                            $header_image .= str_replace($search, $replacements, $header_image_source);
                         }
 
                         // Update ACF Options Sub-Page section.
 //                        $sourceFile = str_replace('/* ACF_OPTIONS_SUB_PAGE_PARTIAL */', $acf_options_sub_page, $sourceFile);
-
-                        // Update Page Title section.
-                        $sourceFile = str_replace('/* PAGE_TITLE_PARTIAL */', $page_title, $sourceFile);
-
-                        // Update Header Image section.
-                        $sourceFile = str_replace('/* HEADER_IMAGE_PARTIAL */', $header_image, $sourceFile);
                     }
                 }
 

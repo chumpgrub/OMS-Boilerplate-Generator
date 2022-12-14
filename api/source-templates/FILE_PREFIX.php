@@ -4,7 +4,7 @@
 Plugin Name: PLUGIN_NAME
 Plugin URI: http://www.orbitmedia.com
 Description: A brief description of the PLUGIN_NAME.
-Version: 1.0
+Version: 2.0.0
 Author: Orbit Media Studios
 Author URI: http://www.orbitmedia.com
 */
@@ -29,7 +29,7 @@ class BASE_CLASS_NAME {
      * @see BASE_CLASS_NAME()
 	 * @return null|\BASE_CLASS_NAME
 	 */
-	public static function instance()  {
+	public static function instance() : null|\BASE_CLASS_NAME {
 		if ( is_null( self::$_instance ) ) {
             self::$_instance = new self();
         }
@@ -116,8 +116,6 @@ class BASE_CLASS_NAME {
         }
 	}
 
-
-
     /* POST_TYPE_END *//* ACF_START *//**
 	 * Error notice if ACF Pro not installed.
 	 */
@@ -135,7 +133,7 @@ class BASE_CLASS_NAME {
  * @return null|BASE_CLASS_NAME
  * @author Orbit Media Studios <wordpress@orbitmedia.com>
  */
-function BASE_CLASS_NAME() {
+function BASE_CLASS_NAME() : null|BASE_CLASS_NAME {
 	return BASE_CLASS_NAME::instance();
 }
 

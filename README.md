@@ -2,10 +2,15 @@
 
 ## Updates
 
-### 12/13/22
-- Updates templates to remove oms specific hooks.
-- Updates functions for PSR standards, e.g., function return type declarations, parameter types.
-- 
+### 12/13/22 - 2.0.0
+Major update. Changing version to 2.0.0.
+
+- Update: Removes oms specific hooks and markup from templates.
+- Update: Function updated for PSR standards, e.g., function return type declarations, parameter types.
+- Update: Remove support/output for WooSidebars
+- Update: Remove support/output for `page_title`
+- Update: Remove support/output for `header_image`
+
 
 ### 07/16/21
 - Removed Google Analytics
