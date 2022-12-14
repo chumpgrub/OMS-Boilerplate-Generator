@@ -34,7 +34,7 @@ class BASE_CLASS_NAME_Post_Types {
 	/**
 	 * Flush the rewrites.
 	 */
-	public static function flush_rewrites() {
+	public static function flush_rewrites() : void {
 		flush_rewrite_rules();
 	}
 
@@ -42,7 +42,7 @@ class BASE_CLASS_NAME_Post_Types {
      * Get all constants in class in key/value array.
      * @return array
      */
-	public static function getConstants() {
+	public static function getConstants() : array {
         $reflection = new ReflectionClass( __CLASS__ );
         return $reflection->getConstants();
     }
@@ -51,7 +51,7 @@ class BASE_CLASS_NAME_Post_Types {
      * Get all post types from class.
      * @return array
      */
-    public static function getPostTypes() {
+    public static function getPostTypes() : array {
         $consts = self::getConstants();
         if ( ! empty( $consts ) ) {
             $post_types = array_filter( $consts, function( $const ) {
@@ -59,13 +59,15 @@ class BASE_CLASS_NAME_Post_Types {
             }, ARRAY_FILTER_USE_KEY );
             return array_values( $post_types );
         }
+
+        return [];
     }
 
     /**
      * Get all taxonomies from class.
      * @return array
      */
-    public static function getTaxonomies() {
+    public static function getTaxonomies() : array  {
         $consts = self::getConstants();
         if ( ! empty( $consts ) ) {
             $taxonomies = array_filter( $consts, function( $const ) {
@@ -73,6 +75,8 @@ class BASE_CLASS_NAME_Post_Types {
             }, ARRAY_FILTER_USE_KEY );
             return array_values( $taxonomies );
         }
+
+        return [];
     }
 }
 

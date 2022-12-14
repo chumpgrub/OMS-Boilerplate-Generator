@@ -142,7 +142,9 @@ class App extends Component {
 		// Create new object with update files and replace to avoid mutation.
 		this.setState({otherSettings: Object.assign({}, {...otherSettings})})
 	}
-	
+
+    // Change url : const API_PATH = `http://localhost:8888/api/
+    //this.setState: const API_PATH = `http://localhost:8888/api/`
 	handleSubmit = (e) => {
 		e.preventDefault()
 		axios({
