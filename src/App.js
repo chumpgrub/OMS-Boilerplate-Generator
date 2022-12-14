@@ -169,6 +169,8 @@ class App extends Component {
 		// Get properties from files variable.
 		const {functions, query, template} = includeFiles
 		// Get other properties.
+		// Get other properties.
+		const {acf} = otherSettings
 		// Example code styles.
 		const styles = {
 			h3: {
