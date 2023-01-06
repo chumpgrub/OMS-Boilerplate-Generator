@@ -72,7 +72,7 @@ class BASE_CLASS_NAME {
         /* ACF_START */// Enforce Advanced Custom Fields plugin as dependency.
 		add_action( 'admin_init', [ $this, 'acf_is_active' ] );/* ACF_END */
         /* POST_TYPE_START */// Create Advanced Custom Fields options sub-page.
-		add_action( 'init', [ $this, 'add_options_sub_page' ] );/* SIDEBARS_START */
+		add_action( 'init', [ $this, 'add_options_sub_page' ] );
 	}
 
 	/**
@@ -83,6 +83,15 @@ class BASE_CLASS_NAME {
 	public static function plugin_path() : string {
 		return untrailingslashit( plugin_dir_path( __FILE__ ) );
 	}
+
+    /**
+     * Get the plugin url path. Used for accessing resources, e.g. images, that reside in your plugin folder.
+     *
+     * @return string
+     */
+    public static function plugin_url() : string {
+        return untrailingslashit( plugin_dir_url( __FILE__ ) );
+    }
 
     /* ACF_START *//**
 	 * Check for ACF Pro before activating this plugin
