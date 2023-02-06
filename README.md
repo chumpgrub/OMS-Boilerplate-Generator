@@ -2,6 +2,12 @@
 
 ## Updates
 
+### 2/6/23 - v2.1.0
+- Update: Adds methods to register and add default Gutenberg blocks
+- Update: Updates index.php to create the template for the block.json in blocks/block.json
+- Update: Updates index.php to create the block render template in the templates directory
+- Housekeeping: Minor updates to code to appease the CS gods.
+
 ### 12/13/22 - 2.0.0
 Major update. Changing version to 2.0.0.
 
