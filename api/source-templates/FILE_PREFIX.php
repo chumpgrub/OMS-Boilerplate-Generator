@@ -96,8 +96,10 @@ class BASE_CLASS_NAME {
     public static function plugin_url() : string {
         return untrailingslashit( plugin_dir_url( __FILE__ ) );
     }
+    /* POST_TYPE_END */
 
-    /* ACF_START *//**
+    /* ACF_START */
+    /**
 	 * Check for ACF Pro before activating this plugin
 	 */
 	public function acf_is_active() : void {
@@ -112,7 +114,8 @@ class BASE_CLASS_NAME {
         }
 	}/* ACF_END */
 
-    /* POST_TYPE_START *//**
+    /* POST_TYPE_START */
+    /**
 	 * Add ACF Options Sub Page to post type menus.
 	 */
 	public function add_options_sub_page() : void {
