@@ -73,6 +73,10 @@ class BASE_CLASS_NAME {
 		add_action( 'admin_init', [ $this, 'acf_is_active' ] );/* ACF_END */
         /* POST_TYPE_START */// Create Advanced Custom Fields options sub-page.
 		add_action( 'init', [ $this, 'add_options_sub_page' ] );
+        // Registers custom blocks
+        //add_action( 'init', [ $this, 'register_blocks' ] );
+        // Add blocks by default
+        //add_action( 'init', [ $this, 'default_blocks' ] );
 	}
 
 	/**
@@ -124,6 +128,42 @@ class BASE_CLASS_NAME {
             }
         }
 	}
+
+    /**
+     * Registers the blocks
+     *
+     * @return void
+     */
+    private function register_blocks() : void {
+        // Register the blocks
+        register_block_type( __DIR__ . '/blocks' );
+    }
+
+    /**
+     * Adds the blocks
+     *
+     * @return void
+     */
+    private function default_blocks(): void {
+        /** EXAMPLE BLOCK BELOW */
+        /*
+        $post_type_object           = get_post_type_object( BASE_CLASS_NAME::ADD_POST_TYPE_HERE );
+        $post_type_object->template = apply_filters( POST_TYPE_NAME_HERE . '_default_blocks', [
+            [
+                'acf/block-name-here',
+                [
+                    [
+                        'lock' => [
+                            'move'   => TRUE,
+                            'remove' => TRUE,
+                        ],
+                    ],
+                ],
+            ],
+        ], $post_type_object->template );
+        */
+
+    }
 
     /* POST_TYPE_END *//* ACF_START *//**
 	 * Error notice if ACF Pro not installed.

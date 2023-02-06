@@ -1,0 +1,23 @@
+/*{
+    "apiVersion": 2,
+    "name": "acf/block-name-here",
+    "title": "Block Title",
+    "description": "Block Description",
+    "style": [],
+    "category": "formatting",
+    "icon": "buddicons-activity",
+    "keywords": [
+        "block keywords"
+    ],
+    "acf": {
+        "mode": "preview",
+        "renderCallback": "block_render_template",
+        "postTypes": [
+            "post types allowed here"
+        ]
+    },
+    "supports": {
+        "multiple": false,
+        "lock": true
+    }
+}
