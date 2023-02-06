@@ -1,6 +1,7 @@
 # OMS Boilerplate Plugin Generator
 
 ## How To Use
+
 - To use Locally:
   - Pull down to your local machine
   - Use your favorite CLI, e.g., terminal, iTerm, whatever it's call on Windows, and `cd` 
