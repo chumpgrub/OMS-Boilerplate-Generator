@@ -38,7 +38,6 @@ Major update. Changing version to 2.0.0.
 - Update: Remove support/output for `page_title`
 - Update: Remove support/output for `header_image`
 
-
 ### 07/16/21
 - Removed Google Analytics
 - Cleaned cruft
