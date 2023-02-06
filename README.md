@@ -1,25 +1,5 @@
 # OMS Boilerplate Plugin Generator
 
-## How To Use
-
-- To use Locally:
-  - Pull down to your local machine
-  - Use your favorite CLI, e.g., terminal, iTerm, whatever it's call on Windows, and `cd` 
-  into the root directory. 
-  - Start up a simple PHP server using `php -S localhost:8888`. 
-    - Note: you can use any port you wish, but if you do this, you will need to update the URL in `src/App.js` 
-    around line 151/159 - the `url` , `proxy: port` and `this.setState`.
-    - Documentation for simple server: https://www.php.net/manual/en/features.commandline.webserver.php
-  - Next, `cd` into the `api` directory. 
-  - Use `npm start` or `yarn start` to start watching the folder. This will
-  start up a development server on `https://localhost:3000`
-  - Your browser will open a tab to the OMS Plugin Generator. 
-  - Profit!
-
-
-- To use on the internet:
-  - Don't.
-
 ## Updates
 
 ### 2/6/23 - v2.1.0 
