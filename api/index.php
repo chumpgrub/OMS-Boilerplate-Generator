@@ -166,8 +166,8 @@ if ( ! empty( $data ) ) {
      * Add root files for plugin.
      */
     private function writeRootFiles() {
-        // Get files, but exclude '.', '..', 'templates', and 'includes'.
-        $files = array_diff( scandir( SOURCE_DIR ), ['.', '..', 'templates', 'includes'] );
+        // Get files, but exclude '.', '..', 'templates','includes', 'blocks'.
+        $files = array_diff( scandir( SOURCE_DIR ), ['.', '..', 'templates', 'includes', 'blocks'] );
 
         foreach ( $files as $file ) {
 
@@ -253,9 +253,6 @@ if ( ! empty( $data ) ) {
     private function writeBlockRegistration() : void {
         // Get files and exclude '.' and '..'.
         $files = array_diff( scandir( SOURCE_DIR . '/blocks' ), ['.', '..'] );
-
-        // Flip array to easily remove unnecessary files by key.
-        $files = array_flip( $files );
 
         if ( ! is_dir( DESTINATION_DIR . '/blocks' ) && ! empty( $files ) ) {
             mkdir( DESTINATION_DIR . '/blocks' );
@@ -403,7 +400,7 @@ if ( ! empty( $data ) ) {
 
             foreach ( $block_templates as $file ) {
 
-                $currentFile = SOURCE_DIR . '/templates/block' . $file;
+                $currentFile = SOURCE_DIR . '/templates/block/' . $file;
 
                 if ( ! is_dir( $currentFile ) && file_exists( $currentFile ) ) {
 
