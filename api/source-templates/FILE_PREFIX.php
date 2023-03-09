@@ -4,7 +4,7 @@
 Plugin Name: PLUGIN_NAME
 Plugin URI: http://www.orbitmedia.com
 Description: A brief description of the PLUGIN_NAME.
-Version: 1.0
+Version: 2.0.0
 Author: Orbit Media Studios
 Author URI: http://www.orbitmedia.com
 */
@@ -29,7 +29,7 @@ class BASE_CLASS_NAME {
      * @see BASE_CLASS_NAME()
 	 * @return null|\BASE_CLASS_NAME
 	 */
-	public static function instance() {
+	public static function instance() : null|\BASE_CLASS_NAME {
 		if ( is_null( self::$_instance ) ) {
             self::$_instance = new self();
         }
@@ -49,12 +49,12 @@ class BASE_CLASS_NAME {
 	/**
 	 * Initialize code required by plugin.
 	 */
-	public function init() {}
+	public function init() : void {}
 
 	/**
 	 * Include files necessary for plugin functionality.
 	 */
-	public function includes() {
+	public function includes() : void {
 	    /* FUNCTIONS_START */// Global functions necessary for plugin.
         require_once plugin_dir_path( __FILE__ ) . 'includes/FILE_PREFIX-functions.php';/* FUNCTIONS_END */
         /* TEMPLATE_START */// Support for plugin-level templating.
@@ -68,17 +68,15 @@ class BASE_CLASS_NAME {
 	/**
 	 * Handle all actions here.
 	 */
-	public function init_hooks() {
+	public function init_hooks() : void {
         /* ACF_START */// Enforce Advanced Custom Fields plugin as dependency.
 		add_action( 'admin_init', [ $this, 'acf_is_active' ] );/* ACF_END */
         /* POST_TYPE_START */// Create Advanced Custom Fields options sub-page.
-		add_action( 'init', [ $this, 'add_options_sub_page' ] );/* SIDEBARS_START */
-		// Add WooSidebars support for custom post types.
-        add_action( 'init', [ $this, 'add_woosidebars_support' ] );/* SIDEBARS_END */
-        /* POST_TYPE_END */// Orbit page title filter.
-		add_filter( 'orbitmedia_page_title', [ $this, 'page_title' ] );
-        // Orbit header image record_id filter.
-		add_filter( 'orbitmedia_header_image_record_id', [ $this, 'header_image_record_id' ] );
+		add_action( 'init', [ $this, 'add_options_sub_page' ] );
+        // Registers custom blocks
+        //add_action( 'init', [ $this, 'register_blocks' ] );
+        // Add blocks by default
+        //add_action( 'init', [ $this, 'default_blocks' ] );
 	}
 
 	/**
@@ -86,14 +84,25 @@ class BASE_CLASS_NAME {
 	 *
 	 * @return string
 	 */
-	public static function plugin_path() {
+	public static function plugin_path() : string {
 		return untrailingslashit( plugin_dir_path( __FILE__ ) );
 	}
 
-    /* ACF_START *//**
+    /**
+     * Get the plugin url path. Used for accessing resources, e.g. images, that reside in your plugin folder.
+     *
+     * @return string
+     */
+    public static function plugin_url() : string {
+        return untrailingslashit( plugin_dir_url( __FILE__ ) );
+    }
+    /* POST_TYPE_END */
+
+    /* ACF_START */
+    /**
 	 * Check for ACF Pro before activating this plugin
 	 */
-	public function acf_is_active() {
+	public function acf_is_active() : void {
 		if ( is_admin() && current_user_can( 'activate_plugins' ) && ! is_plugin_active( 'advanced-custom-fields-pro/acf.php' ) ) {
 
             add_action( 'admin_notices', [ $this, 'plugin_notice' ] );
@@ -105,10 +114,11 @@ class BASE_CLASS_NAME {
         }
 	}/* ACF_END */
 
-    /* POST_TYPE_START *//**
+    /* POST_TYPE_START */
+    /**
 	 * Add ACF Options Sub Page to post type menus.
 	 */
-	public function add_options_sub_page() {
+	public function add_options_sub_page() : void {
 		if ( function_exists( 'acf_add_options_page' ) && BASE_CLASS_NAME_Post_Types::getPostTypes() ) {
             foreach ( BASE_CLASS_NAME_Post_Types::getPostTypes() as $post_type ) {
                 $post_type_obj = get_post_type_object( $post_type );
@@ -122,57 +132,48 @@ class BASE_CLASS_NAME {
         }
 	}
 
-    /* SIDEBARS_START *//**
-     * Add WooSidebars support for custom post types.
+    /**
+     * Registers the blocks
+     *
+     * @return void
      */
-    public function add_woosidebars_support() {
-        if ( class_exists( 'Woo_Sidebars' ) && BASE_CLASS_NAME_Post_Types::getPostTypes() ) {
-            foreach ( BASE_CLASS_NAME_Post_Types::getPostTypes() as $post_type ) {
-                add_post_type_support( $post_type, 'woosidebars' );
-            }
-        }
-    }/* SIDEBARS_END */
+    private function register_blocks() : void {
+        // Register the blocks
+        register_block_type( __DIR__ . '/blocks' );
+    }
+
+    /**
+     * Adds the blocks
+     *
+     * @return void
+     */
+    private function default_blocks(): void {
+        /** EXAMPLE BLOCK BELOW */
+        /*
+        $post_type_object           = get_post_type_object( BASE_CLASS_NAME::ADD_POST_TYPE_HERE );
+        $post_type_object->template = apply_filters( POST_TYPE_NAME_HERE . '_default_blocks', [
+            [
+                'acf/block-name-here',
+                [
+                    [
+                        'lock' => [
+                            'move'   => TRUE,
+                            'remove' => TRUE,
+                        ],
+                    ],
+                ],
+            ],
+        ], $post_type_object->template );
+        */
+
+    }
 
     /* POST_TYPE_END *//* ACF_START *//**
 	 * Error notice if ACF Pro not installed.
 	 */
-	public function plugin_notice() {
+	public function plugin_notice() : void {
         echo '<div class="error"><p>PLUGIN_NAME requires Advanced Custom Fields Pro to be installed and active.</p></div>';
 	}/* ACF_END */
-
-	/**
-	 * Returns Title value entered on CPT > Settings.
-	 *
-	 * @param $title
-	 *
-	 * @return string
-	 */
-	public function page_title( $title ) {
-        if ( BASE_CLASS_NAME_Post_Types::getPostTypes() ) {
-            if ( is_post_type_archive( BASE_CLASS_NAME_Post_Types::getPostTypes() ) ) {
-                $title = get_field( 'title', get_queried_object()->name );
-                return ( $title ) ? sprintf( '<h1>%s</h1>', $title ) : $title;
-            }
-        }
-		return $title;
-	}
-
-	/**
-	 * Returns CPT slug so that header values can be pulled from the CPT >
-	 * Settings options page.
-	 *
-	 * @param $record_id
-	 *
-	 * @return string|integer $record_id Either Post ID or CPT slug.
-	 */
-	public function header_image_record_id( $record_id ) {
-        if ( BASE_CLASS_NAME_Post_Types::getPostTypes() ) {
-            if ( is_post_type_archive( BASE_CLASS_NAME_Post_Types::getPostTypes() ) ) {
-                return get_queried_object()->name;
-            }
-        }
-		return $record_id;
-	}
 }
 
 /**
@@ -184,7 +185,7 @@ class BASE_CLASS_NAME {
  * @return null|BASE_CLASS_NAME
  * @author Orbit Media Studios <wordpress@orbitmedia.com>
  */
-function BASE_CLASS_NAME() {
+function BASE_CLASS_NAME() : null|BASE_CLASS_NAME {
 	return BASE_CLASS_NAME::instance();
 }
 

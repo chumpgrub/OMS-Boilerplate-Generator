@@ -1,4 +1,4 @@
-		// Add WooSidebars support for POST_TYPE_NAMES.
+		// DEPRECATED. DO NOT USE. Add WooSidebars support for POST_TYPE_NAMES.
 		if ( class_exists( 'Woo_Sidebars' ) ) :
 			add_post_type_support( BASE_CLASS_NAME_Post_Types::POST_TYPE, 'woosidebars' );
 		endif;/* POST_TYPE_END */

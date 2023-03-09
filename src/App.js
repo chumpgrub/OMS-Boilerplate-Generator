@@ -54,7 +54,6 @@ class App extends Component {
 			},
 			otherSettings: {
 				acf: true,
-				wooSidebars: true
 			},
 			download: null,
 			errors: {}
@@ -142,12 +141,14 @@ class App extends Component {
 		// Create new object with update files and replace to avoid mutation.
 		this.setState({otherSettings: Object.assign({}, {...otherSettings})})
 	}
-	
+
+    // Change url - not sure how to use the env files for this : const API_PATH = `http://localhost:8888/api/
+    // this.setState: not sure how to use the env files for this const API_PATH = `http://localhost:8888/api/`
 	handleSubmit = (e) => {
 		e.preventDefault()
 		axios({
 			method: 'post',
-			url: `${process.env.REACT_APP_API_PATH}/index.php`,
+			url: `http://localhost:8888/api/index.php`,
 			proxy: {
 				host: 'localhost',
 				port: 8888,
@@ -155,7 +156,7 @@ class App extends Component {
 			data: this.state
 			})
 			.then((body) => {
-				this.setState({'download': `${process.env.REACT_APP_API_PATH}/tmp/${body.data}`})
+				this.setState({'download': `http://localhost:8888/api/tmp/${body.data}`})
 			})
 			.catch((error) => {
 				console.log(error)
@@ -168,7 +169,8 @@ class App extends Component {
 		// Get properties from files variable.
 		const {functions, query, template} = includeFiles
 		// Get other properties.
-		const {acf, wooSidebars} = otherSettings
+		// Get other properties.
+		const {acf} = otherSettings
 		// Example code styles.
 		const styles = {
 			h3: {
@@ -445,14 +447,6 @@ class App extends Component {
 												/>
 											}
 											label={`Requires Advanced Custom Fields`}/>
-										<FormControlLabel
-											control={
-												<Checkbox name="wooSidebars"
-												          checked={wooSidebars}
-												          onChange={this.handleOtherSettingsChange}
-												/>
-											}
-											label={`WooSidebars Support`}/>
 									</FormGroup>
 								</FormControl>
 							</Grid>

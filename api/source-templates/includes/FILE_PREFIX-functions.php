@@ -6,16 +6,16 @@
  * @param mixed $slug
  * @param string $name (default: '')
  */
-function FUNCTION_PREFIX_get_template_part( $slug, $name = '' ) {
+function FUNCTION_PREFIX_get_template_part( mixed $slug, string $name = '' ) :void {
 
 	$template = '';
 
-	// Look in yourtheme/FILE_PREFIX/slug-name.php
+	// Look in your_theme/FILE_PREFIX/slug-name.php
 	if ( $name ) {
         $template = locate_template( array( "FILE_PREFIX/{$slug}-{$name}.php" ) );
     }
 
-	// Look in yourthme/FILE_PREFIX/slug.php
+	// Look in your_theme/FILE_PREFIX/slug.php
 	if ( ( ! $template && ! $name ) && file_exists( get_stylesheet_directory() . "/FILE_PREFIX/{$slug}.php" ) ) {
         $template = locate_template( array( "FILE_PREFIX/{$slug}.php" ) );
     }
@@ -36,37 +36,26 @@ function FUNCTION_PREFIX_get_template_part( $slug, $name = '' ) {
 
 }
 
-
 /**
- * Gets the edit link for PLUGIN_NAME.
+ * Callback for the block template from the block.json
  *
- * @param int $record_id ID of particular PLUGIN_NAME.
- * @return string
+ * @return void
  */
-function FUNCTION_PREFIX_get_edit_link( $record_id ) {
+function block_render_template() : void {
+    $template = '';
 
-	if ( is_user_logged_in() ) {
+    if ( file_exists( get_stylesheet_directory() . '/FILE_PREFIX/block/block-render-template.php' ) ) :
+        $template = locate_template( array('FILE_PREFIX/block/block-render-template.php') );
+    else :
+        $template = BASE_CLASS_NAME::plugin_path() . '/templates/block/block-render-template.php';
+    endif;
 
-        // Get current user.
-        $user = wp_get_current_user();
+    ob_start();
 
-        // Roles with permission to edit content.
-        $allowed_users = apply_filters( 'FUNCTION_PREFIX_edit_permissions', [
-            'client_admin',
-            'administrator',
-        ] );
-
-        if ( ! empty( $user->roles ) ) {
-
-            // If the current user roles intersect with the allowed users array, then proceed.
-            if ( array_intersect( $allowed_users, $user->roles ) ) {
-
-                return '
-                    <div class="editLink">
-                        <a target="_blank" href="' . get_edit_post_link( $record_id ) . '">Edit</a>
-                    </div>
-                ';
-            }
-        }
+    if ( $template ) {
+        load_template( $template, FALSE );
     }
+
+    $content = ob_get_clean();
+    echo $content;
 }

@@ -11,7 +11,7 @@ class BASE_CLASS_NAME_Post_Types {
 	/**
 	 * Initiate post type and taxonomy registration hooks.
 	 */
-	public static function init() {
+	public static function init() : void {
         /* POST_TYPE_START */add_action( 'init', [ __CLASS__, 'register_post_types' ], 5 );/* POST_TYPE_END */
         /* TAXONOMY_START */add_action( 'init', [ __CLASS__, 'register_taxonomies' ], 5 );/* TAXONOMY_END */
 		register_activation_hook( __FILE__, [ __CLASS__, 'flush_rewrites' ] );
@@ -20,21 +20,21 @@ class BASE_CLASS_NAME_Post_Types {
     /**
      * Register Post Types.
      */
-    public static function register_post_types() {
+    public static function register_post_types() : void {
 /* POST_TYPE_REGISTRATION */
     }
 
     /**
      * Register Taxonomies.
      */
-    public static function register_taxonomies() {
+    public static function register_taxonomies() : void  {
 /* TAXONOMY_REGISTRATION */
     }
 
 	/**
 	 * Flush the rewrites.
 	 */
-	public static function flush_rewrites() {
+	public static function flush_rewrites() : void {
 		flush_rewrite_rules();
 	}
 
@@ -42,16 +42,15 @@ class BASE_CLASS_NAME_Post_Types {
      * Get all constants in class in key/value array.
      * @return array
      */
-	public static function getConstants() {
-        $reflection = new ReflectionClass( __CLASS__ );
-        return $reflection->getConstants();
+	public static function getConstants() : array {
+        return ( new ReflectionClass( __CLASS__ ) )->getConstants();
     }
 
     /**
      * Get all post types from class.
      * @return array
      */
-    public static function getPostTypes() {
+    public static function getPostTypes() : array {
         $consts = self::getConstants();
         if ( ! empty( $consts ) ) {
             $post_types = array_filter( $consts, function( $const ) {
@@ -59,13 +58,15 @@ class BASE_CLASS_NAME_Post_Types {
             }, ARRAY_FILTER_USE_KEY );
             return array_values( $post_types );
         }
+
+        return [];
     }
 
     /**
      * Get all taxonomies from class.
      * @return array
      */
-    public static function getTaxonomies() {
+    public static function getTaxonomies() : array  {
         $consts = self::getConstants();
         if ( ! empty( $consts ) ) {
             $taxonomies = array_filter( $consts, function( $const ) {
@@ -73,6 +74,8 @@ class BASE_CLASS_NAME_Post_Types {
             }, ARRAY_FILTER_USE_KEY );
             return array_values( $taxonomies );
         }
+
+        return [];
     }
 }
 
