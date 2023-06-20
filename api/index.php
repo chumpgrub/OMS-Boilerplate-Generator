@@ -585,7 +585,7 @@ if ( ! empty( $data ) ) {
 
         $hashedPrefix = md5( $this->filePrefix . strtotime( 'now' ) );
 
-        $filename = sprintf( 'oms-plugin-%s.zip', $hashedPrefix );
+        $filename = sprintf( 'oms-plugin-%s-%s.zip', strtolower( str_replace( ' ', '-', $this->pluginName ) ), $hashedPrefix );
 
         $zipper = new \Chumper\Zipper\Zipper;
 
